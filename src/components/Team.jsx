@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import FadeInSection from "./FadeInSection";
+import FadeInSection from "./FadeInsection.jsx";
 
 
 const team = [

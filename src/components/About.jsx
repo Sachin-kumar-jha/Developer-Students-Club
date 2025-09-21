@@ -1,4 +1,4 @@
-import FadeInSection from "./FadeInSection";
+import FadeInSection from "./FadeInsection.jsx";
 import { Code, Smartphone, Cloud, Brain } from "lucide-react";
 import { motion } from "framer-motion";
 export default function About() {

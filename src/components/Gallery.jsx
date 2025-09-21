@@ -1,4 +1,4 @@
-import FadeInSection from "./FadeInSection";
+import FadeInSection from "./FadeInsection.jsx";
 
 export default function Gallery() {
   return (
