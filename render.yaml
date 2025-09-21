@@ -1,8 +1,9 @@
 services:
   - type: web
-    name: blog-website
+    name: developer-studens-club
     env: static
     buildCommand: npm run build
+    autoDeploy: true
     staticPublishPath: ./dist
     routes:
       - type: rewrite
