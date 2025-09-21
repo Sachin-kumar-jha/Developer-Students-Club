@@ -7,5 +7,19 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-   build: { outDir: 'dist' },
+  server: {
+    port: 5173,
+    host: true,
+  },
+  build: {
+    outDir: 'dist',
+  },
+  preview: {
+    port: 4173,
+    host: true,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
+  base: '/',
 })
