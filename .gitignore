@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Ignore all video files in src/assets
-/src/assets/*.mp4
+# /src/assets/*.mp4 
