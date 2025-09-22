@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "../assets/image.png";
+import logo from "../assets/download.png";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
