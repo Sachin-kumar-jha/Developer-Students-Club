@@ -9,14 +9,12 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import AboutPage from "./pages/AboutPage";
 import TeamPage from "./pages/TeamPage";
-import CustomCursor from "./components/CustomCursor";
 import EventPage from "./pages/EventPage"
 import GalleryPage from "./pages/GalleryPage";
 
 export default function App() {
   return (
     <>
-      <CustomCursor />
       <div className="bg-[#0F1A24] text-white w-full min-h-screen">
         <Navbar />
         <div className="md:px-10">
