@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { logoutUser } from "../redux/slices/authSlice";
 
-export default function AvatarMenu() {
+export default function AvatarMenu({user}) {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-
+//   const { user } = useSelector((state) => state.auth?.user);
+// console.log(user);
+console.log(user);
   const firstLetter = user?.name?.[0]?.toUpperCase();
 
   return (

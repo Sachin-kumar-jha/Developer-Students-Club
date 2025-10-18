@@ -2,15 +2,26 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../assets/image.png";
-import AuthModal from "./AuthModal";
-import AvatarMenu from "./AvatarMenu";
+import AuthModal from "./AuthModal.jsx";
+import AvatarMenu from "./AvatarMenu.jsx";
+
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../redux/slices/authSlice.js"; // adjust path if needed
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [user, setUser] = useState(null); // ✅ local demo state
+
+  
+  const user = useSelector((state) => state.auth.user);
+  console.log(user);
+  const dispatch = useDispatch();
 
   const closeMenu = () => setIsOpen(false);
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   return (
     <>
@@ -40,7 +51,7 @@ export default function Navbar() {
                   Join Us
                 </button>
               ) : (
-                <AvatarMenu user={user} setUser={setUser} />
+                <AvatarMenu user={user} onLogout={handleLogout} />
               )}
 
               <Link
@@ -76,7 +87,7 @@ export default function Navbar() {
                 transition={{ duration: 0.2 }}
               />
               <motion.div
-                className="fixed top-0 right-0 h-full w-64 bg-transparent  z-50 md:hidden flex flex-col"
+                className="fixed top-0 right-0 h-full w-64 bg-transparent z-50 md:hidden flex flex-col"
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
@@ -111,7 +122,7 @@ export default function Navbar() {
                     </button>
                   ) : (
                     <div className="flex justify-center w-full">
-                      <AvatarMenu user={user} setUser={setUser} />
+                      <AvatarMenu user={user} onLogout={handleLogout} />
                     </div>
                   )}
                 </div>
@@ -126,7 +137,6 @@ export default function Navbar() {
         {showAuthModal && (
           <AuthModal
             onClose={() => setShowAuthModal(false)}
-            setUser={setUser}
           />
         )}
       </AnimatePresence>
