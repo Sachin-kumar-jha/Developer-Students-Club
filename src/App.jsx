@@ -9,14 +9,13 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import AboutPage from "./pages/AboutPage";
 import TeamPage from "./pages/TeamPage";
-import CustomCursor from "./components/CustomCursor";
 import EventPage from "./pages/EventPage"
 import GalleryPage from "./pages/GalleryPage";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 export default function App() {
   return (
     <>
-      <CustomCursor />
       <div className="bg-[#0F1A24] text-white w-full min-h-screen">
         <Navbar />
         <div className="md:px-10">
@@ -53,6 +52,17 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </div>
+         <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
         <Footer />
       </div>
 
