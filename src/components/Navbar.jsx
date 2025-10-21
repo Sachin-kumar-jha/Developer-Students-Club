@@ -46,7 +46,7 @@ export default function Navbar() {
               {!user ? (
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className="px-4 py-2 bg-teal-400 text-black rounded-lg font-semibold hover:bg-teal-300 transition"
+                  className="px-4 py-2 bg-teal-400 text-black cursor-pointer rounded-lg font-semibold hover:bg-teal-300 transition"
                 >
                   Join Us
                 </button>
@@ -116,7 +116,7 @@ export default function Navbar() {
                         setShowAuthModal(true);
                         closeMenu();
                       }}
-                      className="px-4 py-2 bg-teal-400 text-black rounded-lg font-semibold hover:bg-teal-300 w-full"
+                      className="px-4 py-2 bg-teal-400 text-black rounded-lg font-semibold hover:bg-teal-300 w-full cursor-pointer"
                     >
                       Join Us
                     </button>

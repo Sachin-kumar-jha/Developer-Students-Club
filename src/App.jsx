@@ -13,6 +13,7 @@ import EventPage from "./pages/EventPage"
 import GalleryPage from "./pages/GalleryPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddEventPage from "./components/Event/AddEvent";
 export default function App() {
   return (
     <>
@@ -41,7 +42,8 @@ export default function App() {
 
             {/* Events Page */}
             <Route path="/events" element={<EventPage />} />
-
+             <Route path="/events/add" element={<AddEventPage />} />
+            <Route path="/events/edit/:id" element={<AddEventPage />} />
             {/* Team Page */}
             <Route path="/team" element={<TeamPage />} />
 

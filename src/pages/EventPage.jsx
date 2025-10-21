@@ -3,25 +3,28 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEvents } from "../redux/slices/eventSlice.js";
 import EventPageSkeleton from "../components/Skeleton/EventPageSkeleton.jsx";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthModal from "../components/AuthModal.jsx";
+import axios from "axios";
 
 export default function EventsPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { events, loading, error } = useSelector((state) => state.events);
-  const { user } = useSelector((state) => state.auth); 
+  const { events, loading } = useSelector((state) => state.events);
+  const { user } = useSelector((state) => state.auth);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
 
   useEffect(() => {
     dispatch(fetchEvents());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (error) toast.error(error);
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) toast.error(error);
+  // }, [error]);
 
   const now = new Date();
 
@@ -35,15 +38,27 @@ export default function EventsPage() {
 
   const isAdmin = user?.role === "admin";
 
-  const handleDelete = () => {
-    toast.success("Event deleted successfully!");
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    try {
+      const res = await axios.delete(`${import.meta.env.VITE_API_URL}/api/events/${id}`, {
+        withCredentials: true,
+      });
+      toast.success(`${res.data.message}`);
+      dispatch(fetchEvents()); // Refetch events after deletion
+    } catch {
+      toast.error("Failed to delete event.");
+    } finally {
+      setDeletingId(null);
+    }
   };
+
 
   const handleEdit = (id) => {
-    navigate(`/admin/events/edit/${id}`);
+    navigate(`/events/edit/${id}`);
   };
 
-  const handleRegister= (eventId) => {
+  const handleRegister = (eventId) => {
     if (!user) {
       setAuthModalOpen(true);
       return;
@@ -51,17 +66,22 @@ export default function EventsPage() {
     navigate(`/events/register/${eventId}`);
   };
 
-  const handleResources= (eventId) => {
+  const handleAddEvent = () => {
+    if (!user || user.role !== "admin") {
+      toast.error("Only admins can add events!");
+      return;
+    }
+    navigate("/events/add");
+  };
+
+  const handleResources = (eventId) => {
     if (!user) {
       setAuthModalOpen(true);
       return;
     }
     navigate(`/events/${eventId}/resources`);
   };
-  
-  const handleAdd = () => {
-    navigate("/admin/events/add");
-  };
+
 
   const renderEventCard = (event, index, isPast = false) => (
     <motion.div
@@ -126,7 +146,7 @@ export default function EventsPage() {
           <div className="mt-2 flex gap-2">
             <button
               onClick={() => handleEdit(event._id)}
-              className="px-3 py-1 bg-teal-600 hover:bg-teal-400 rounded"
+              className="px-3 py-1 bg-teal-600 hover:bg-cyan-400 rounded"
             >
               Edit
             </button>
@@ -134,7 +154,7 @@ export default function EventsPage() {
               onClick={() => handleDelete(event._id)}
               className="px-3 py-1 bg-teal-600 hover:bg-teal-400 rounded"
             >
-              Delete
+              {deletingId === event._id ? "...deleting" : "Delete"}
             </button>
           </div>
         )}
@@ -142,13 +162,13 @@ export default function EventsPage() {
 
       <motion.img
         src={
-          // event.image ||
+          event.image ||
           "https://t3.ftcdn.net/jpg/14/13/82/90/240_F_1413829003_bQFOIiMsXDLCJYp8KbVTTabm7RUv8GS7.jpg"
         }
         alt={event.title}
         className="rounded-xl shadow-lg cursor-pointer"
         whileHover={{ scale: 1.03 }}
-        // onClick={() => navigate(`/events/${event._id}`)}
+      // onClick={() => navigate(`/events/${event._id}`)}
       />
     </motion.div>
   );
@@ -170,7 +190,7 @@ export default function EventsPage() {
 
         {isAdmin && (
           <button
-            onClick={handleAdd}
+            onClick={handleAddEvent}
             className="mt-4 px-5 py-2 bg-teal-600 hover:bg-teal-400 rounded-lg shadow-md transition"
           >
             Add New Event

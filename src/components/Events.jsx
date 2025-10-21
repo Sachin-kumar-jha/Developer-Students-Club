@@ -3,7 +3,7 @@ import FadeInSection from "./FadeInsection.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEvents } from "../redux/slices/eventSlice.js";
 import EventSkeleton from "./Skeleton/EventSkeleton.jsx";
-import { toast } from "react-toastify";
+//import { toast } from "react-toastify";
 
 export default function Events() {
   const dispatch = useDispatch();
@@ -13,11 +13,11 @@ export default function Events() {
     dispatch(fetchEvents());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) {
+  //     toast.error(error);
+  //   }
+  // }, [error]);
 
   const now = new Date();
 
