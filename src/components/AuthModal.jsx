@@ -8,7 +8,7 @@ export default function AuthModal({ onClose }) {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
 
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading} = useSelector((state) => state.auth);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ export default function AuthModal({ onClose }) {
           {isLogin ? "Login" : "Sign Up"}
         </h2>
 
-        {error && <p className="text-red-400 text-center">{error}</p>}
+        {/* {error && <p className="text-red-400 text-center">{error}</p>} */}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!isLogin && (

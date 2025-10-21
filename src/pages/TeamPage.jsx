@@ -23,7 +23,7 @@ export default function TeamPage() {
       <motion.section
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        transition={{ duration: 0.5 }}
         className="max-w-5xl mx-auto"
       >
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 tracking-normal text-white">
