@@ -49,6 +49,7 @@ export default function AddEventPage() {
     }
   }, [eventId]);
 
+  
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "bannerImage" && files.length > 0) {

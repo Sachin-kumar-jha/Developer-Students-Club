@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
@@ -9,11 +10,20 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import AboutPage from "./pages/AboutPage";
 import TeamPage from "./pages/TeamPage";
-import EventPage from "./pages/EventPage"
-import GalleryPage from "./pages/GalleryPage";
+import AddEventPage from "./components/Event/AddEvent";
+import EventMediaUpload from "./components/Event/EventMediaUpload";
+import { SuspenseLoader} from "./components/Skeleton/SuspenseLoader";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AddEventPage from "./components/Event/AddEvent";
+
+// Lazy load GET API pages
+const EventPage = lazy(() => import("./pages/EventPage"));
+const GalleryPage = lazy(() => import("./pages/GalleryPage"));
+const EventHighlightsPage = lazy(() => import("./components/Gallery/EventHighlightsPage"));
+
+
+
+
 export default function App() {
   return (
     <>
@@ -32,7 +42,6 @@ export default function App() {
                   <Team />
                   <Gallery />
                   <Contact />
-
                 </>
               }
             />
@@ -40,35 +49,59 @@ export default function App() {
             {/* About Page as Separate Route */}
             <Route path="/about" element={<AboutPage />} />
 
-            {/* Events Page */}
-            <Route path="/events" element={<EventPage />} />
-             <Route path="/events/add" element={<AddEventPage />} />
+            {/* Events Page (lazy loaded) */}
+            <Route
+              path="/events"
+              element={
+                <Suspense fallback={<SuspenseLoader />}>
+                  <EventPage />
+                </Suspense>
+              }
+            />
+            <Route path="/events/add" element={<AddEventPage />} />
             <Route path="/events/edit/:id" element={<AddEventPage />} />
+            {/* 🔹 Media upload route (admin only) */}
+            <Route path="/events/media-upload/:eventId" element={<EventMediaUpload />} />
+
             {/* Team Page */}
             <Route path="/team" element={<TeamPage />} />
 
-            {/* Gallery Page */}
-            <Route path="/gallery" element={<GalleryPage />} />
+            {/* Gallery Page (lazy loaded) */}
+            <Route
+              path="/gallery"
+              element={
+                <Suspense fallback={<SuspenseLoader />}>
+                  <GalleryPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/gallery/highlights/:eventId"
+              element={
+                <Suspense fallback={<SuspenseLoader />}>
+                  <EventHighlightsPage />
+                </Suspense>
+              }
+            />
 
             {/* Contact Page */}
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </div>
-         <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={true}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <Footer />
       </div>
-
     </>
-
   );
 }

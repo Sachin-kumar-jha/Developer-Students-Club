@@ -66,6 +66,15 @@ export default function EventsPage() {
     navigate(`/events/register/${eventId}`);
   };
 
+  const handleMediaUpload=(eventId)=>{
+    if(!isAdmin){
+   navigate("/events");
+   return;
+    }
+    navigate(`/events/media-upload/${eventId}`);
+
+  }
+
   const handleAddEvent = () => {
     if (!user || user.role !== "admin") {
       toast.error("Only admins can add events!");
@@ -155,6 +164,13 @@ export default function EventsPage() {
               className="px-3 py-1 bg-teal-600 hover:bg-teal-400 rounded"
             >
               {deletingId === event._id ? "...deleting" : "Delete"}
+            </button>
+
+            <button
+              onClick={() => handleMediaUpload(event._id)}
+              className="px-3 py-1 bg-teal-600 hover:bg-teal-400 rounded"
+            >
+             Event Media
             </button>
           </div>
         )}
