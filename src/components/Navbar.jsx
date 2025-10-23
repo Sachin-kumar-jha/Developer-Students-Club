@@ -4,25 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo from "../assets/image.png";
 import AuthModal from "./AuthModal.jsx";
 import AvatarMenu from "./AvatarMenu.jsx";
-
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/slices/authSlice.js"; // adjust path if needed
+import { useSelector} from "react-redux";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-
-  
   const user = useSelector((state) => state.auth.user);
   console.log(user);
-  const dispatch = useDispatch();
-
+  
   const closeMenu = () => setIsOpen(false);
-
-  const handleLogout = () => {
-    dispatch(logout());
-  };
-
   return (
     <>
       <nav className="sticky top-0 z-50 bg-[#0F1A24]/95 backdrop-blur-md shadow-md border-b border-gray-700">
@@ -51,7 +41,7 @@ export default function Navbar() {
                   Join Us
                 </button>
               ) : (
-                <AvatarMenu user={user} onLogout={handleLogout} />
+                <AvatarMenu user={user}/>
               )}
 
               <Link
@@ -122,7 +112,7 @@ export default function Navbar() {
                     </button>
                   ) : (
                     <div className="flex justify-center w-full">
-                      <AvatarMenu user={user} onLogout={handleLogout} />
+                      <AvatarMenu user={user}/>
                     </div>
                   )}
                 </div>

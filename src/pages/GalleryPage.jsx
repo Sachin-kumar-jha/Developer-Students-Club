@@ -26,7 +26,7 @@ export default function GalleryPage() {
   } = useSelector((state) => state.events);
 
   useEffect(() => {
-    // dispatch(fetchAllMedia());
+    //dispatch(fetchAllMedia());
     dispatch(fetchEvents());
   }, [dispatch]);
 
@@ -43,7 +43,7 @@ export default function GalleryPage() {
   const highlightEventsWithMedia =
     events.length && allMedia.length
       ? events
-          .filter((event) => new Date(event.startDate) >= today)
+          .filter((event) => new Date(event.endDate) >= today)
           .map((event) => {
             const eventMedia = allMedia.filter(
               (m) => String(m.eventId) === String(event._id)
@@ -61,7 +61,7 @@ export default function GalleryPage() {
   const pastEventsMedia =
     events.length && allMedia.length
       ? events
-          .filter((event) => new Date(event.startDate) < today)
+          .filter((event) => new Date(event.endDate) < today)
           .map((event) =>
             allMedia
               .filter((m) => String(m.eventId) === String(event._id))

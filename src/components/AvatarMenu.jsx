@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../redux/slices/authSlice";
 
-export default function AvatarMenu({user}) {
+export default function AvatarMenu({ user }) {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
-//   const { user } = useSelector((state) => state.auth?.user);
-// console.log(user);
-console.log(user);
+  const navigate = useNavigate();
   const firstLetter = user?.name?.[0]?.toUpperCase();
+  const handleProfileClick = () => {
+    setOpen(false);
+    navigate(`/profile/${user.id}`); // Redirect to profile page
+  };
+
+  const handleLogoutClick = () => {
+    dispatch(logoutUser());
+    setOpen(false);
+    navigate("/");
+  };
+    
 
   return (
     <div className="relative">
@@ -23,7 +33,7 @@ console.log(user);
       <AnimatePresence>
         {open && (
           <motion.div
-            className="absolute right-0 mt-3 w-40 bg-[#162330] text-gray-200 rounded-lg shadow-lg overflow-hidden border border-gray-700"
+            className="absolute right-0 mt-3 w-40 bg-[#162330] text-gray-200 rounded-lg shadow-lg overflow-hidden border border-gray-700 z-50"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -31,19 +41,13 @@ console.log(user);
           >
             <button
               className="block w-full text-left px-4 py-2 hover:bg-teal-500/20"
-              onClick={() => {
-                alert("Profile clicked");
-                setOpen(false);
-              }}
+              onClick={handleProfileClick}
             >
               Profile
             </button>
             <button
               className="block w-full text-left px-4 py-2 hover:bg-teal-500/20"
-              onClick={() => {
-                dispatch(logoutUser());
-                setOpen(false);
-              }}
+              onClick={handleLogoutClick}
             >
               Logout
             </button>

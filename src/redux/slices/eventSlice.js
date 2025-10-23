@@ -14,14 +14,37 @@ export const fetchEvents = createAsyncThunk("events/fetchEvents", async (_, { re
   }
 });
 
+
+export const registerForEvent = createAsyncThunk(
+  "events/registerForEvent",
+  async (eventId, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`http://localhost:5000/registration/register/${eventId}`, {}, {
+        withCredentials: true, // include cookies for auth if needed
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to register for event"
+      );
+    }
+  }
+);
+
 const eventSlice = createSlice({
   name: "events",
   initialState: {
     events: [],
+    successMessage:null,
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+     clearMessages: (state) => {
+      state.error = null;
+      state.successMessage = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchEvents.pending, (state) => {
@@ -34,8 +57,22 @@ const eventSlice = createSlice({
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading =true;
         state.error = action.payload?.message || "Failed to fetch events";
-      });
+      })
+      .addCase(registerForEvent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(registerForEvent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message;
+      })
+      .addCase(registerForEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });;
   },
 });
 
+export const { clearMessages } = eventSlice.actions;
 export default eventSlice.reducer;
