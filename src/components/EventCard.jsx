@@ -17,14 +17,14 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
   const [deletingId, setDeletingId] = useState(null);
 
   
-  const handleRegister = (id) => {
+  const handleRegister = async (eventId) => {
     if (!user) {
       setAuthModalOpen(true); 
       return;
     }
     dispatch(clearMessages());
-    dispatch(registerForEvent(id));
-    if(successMessage)toast.success(successMessage);
+    await dispatch(registerForEvent(eventId));
+    if(successMessage) toast.success(successMessage);
     if(error)toast.error(error);
   };
 
