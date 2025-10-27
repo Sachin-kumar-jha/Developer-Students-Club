@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../redux/slices/authSlice";
-
+import { toast } from "react-toastify";
 export default function AvatarMenu({ user }) {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
@@ -14,10 +14,11 @@ export default function AvatarMenu({ user }) {
     navigate(`/profile/${user.id}`); // Redirect to profile page
   };
 
-  const handleLogoutClick = () => {
-    dispatch(logoutUser());
+  const handleLogoutClick =async () => {
+    const res= await dispatch(logoutUser()).unwrap();
     setOpen(false);
     navigate("/");
+    toast.success(`${res?.message}`);
   };
     
 

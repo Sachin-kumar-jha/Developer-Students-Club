@@ -2,12 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 
-const API_URL = "http://localhost:5000/api/events";
-
 // Fetch all events
 export const fetchEvents = createAsyncThunk("events/fetchEvents", async (_, { rejectWithValue }) => {
   try {
-    const res = await axios.get(API_URL);
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/events`);
     return res.data;
   } catch (err) {
     return rejectWithValue(err.response.data);
@@ -19,7 +17,7 @@ export const registerForEvent = createAsyncThunk(
   "events/registerForEvent",
   async (eventId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`http://localhost:5000/registration/register/${eventId}`, {}, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/registration/register/${eventId}`, {}, {
         withCredentials: true, // include cookies for auth if needed
       });
       return response.data;

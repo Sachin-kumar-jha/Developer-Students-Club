@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import codingMockup from "../assets/coding.avif"; // 👉 make sure image is inside src/assets
+import codingMockup from "../assets/coding.avif";
 
 export default function Hero() {
   return (

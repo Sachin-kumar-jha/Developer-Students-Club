@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, registerUser } from "../redux/slices/authSlice";
-
+import { toast } from "react-toastify";
 export default function AuthModal({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -10,12 +10,14 @@ export default function AuthModal({ onClose }) {
   const dispatch = useDispatch();
   const { loading} = useSelector((state) => state.auth);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     if (isLogin) {
-      dispatch(loginUser({ email: formData.email, password: formData.password }));
+     const res=await dispatch(loginUser({ email: formData.email, password: formData.password })).unwrap();
+     toast.success(`${res?.message}`);
     } else {
-      dispatch(registerUser(formData));
+      const res= await dispatch(registerUser(formData)).unwrap();
+      toast.success(`${res?.message}`);
     }
     onClose();
   };
@@ -42,6 +44,7 @@ export default function AuthModal({ onClose }) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!isLogin && (
+            <>
             <input
               type="text"
               placeholder="Full Name"
@@ -49,10 +52,34 @@ export default function AuthModal({ onClose }) {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
             />
+            <input
+              type="number"
+              placeholder="example: 23111"
+              className="p-2 rounded bg-[#0F1A24] border border-gray-700 focus:outline-none focus:border-teal-400 placeholder-gray-400 text-white"
+              onChange={(e) => setFormData({ ...formData, rollno: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="example: Information Technology or IT"
+              className="p-2 rounded bg-[#0F1A24] border border-gray-700 focus:outline-none focus:border-teal-400 placeholder-gray-400 text-white"
+              onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+              required
+            />
+            <input
+              type="number"
+              min={1}
+              max={4}
+              placeholder="enter your year"
+              className="p-2 rounded bg-[#0F1A24] border border-gray-700 focus:outline-none focus:border-teal-400 placeholder-gray-400 text-white"
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+              required
+            />
+       </>
           )}
           <input
             type="email"
-            placeholder="Email"
+            placeholder="example: abc123@gmail.com"
             className="p-2 rounded bg-[#0F1A24] border border-gray-700 focus:outline-none focus:border-teal-400 placeholder-gray-400 text-white"
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required

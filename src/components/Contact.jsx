@@ -1,5 +1,5 @@
 import FadeInSection from "./FadeInsection.jsx";
-import clubMap from "../assets/club-map.jpg"; // 👉 add map/location image in src/assets
+// import clubMap from "../assets/club-map.jpg"; // 👉 add map/location image in src/assets
 
 export default function Contact() {
   return (
@@ -35,13 +35,14 @@ export default function Contact() {
 
         {/* Right Image / Location */}
         <FadeInSection>
-          <div className="w-full h-full flex justify-center">
-            <img
-              src={clubMap}
-              alt="Club Location"
-              className="rounded-xl shadow-lg object-cover max-h-[400px]"
-            />
-          </div>
+          <div class="relative w-full pb-[66.67%]">
+  <iframe
+    class="absolute top-0 left-0 w-full h-full border-0"
+    src="https://maps.google.com/maps?width=600&height=400&hl=en&q=Rajasthan%20Technical%20University&t=&z=14&ie=UTF8&iwloc=B&output=embed"
+    allowfullscreen=""
+    loading="lazy"
+  ></iframe>
+</div>
         </FadeInSection>
       </div>
     </section>

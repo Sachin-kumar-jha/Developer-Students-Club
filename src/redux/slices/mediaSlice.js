@@ -5,7 +5,6 @@ import axios from "axios";
 export const fetchAllMedia = createAsyncThunk("media/fetchAll", async (_, thunkAPI) => {
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/media`);
-    console.log(res);
     return res.data.data;
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Failed to fetch media");
@@ -16,7 +15,6 @@ export const fetchMediaByEventId = createAsyncThunk("media/fetchByEvent", async 
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/media/event/${eventId}`);
     return res.data.data;
-    
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Failed to fetch event media");
   }

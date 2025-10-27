@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const API_URL = "http://localhost:5000/api/users";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
 
 // Async Thunks
 export const loginUser = createAsyncThunk(
@@ -12,8 +12,6 @@ export const loginUser = createAsyncThunk(
       const res = await axios.post(`${API_URL}/login`, formData, {
         withCredentials: true,
       });
-      toast.success(res.data?.message);
-
       // Save user to localStorage
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
@@ -52,7 +50,7 @@ export const logoutUser = createAsyncThunk(
         {},
         { withCredentials: true }
       );
-      toast.success(response.data?.message);
+      
 
       localStorage.removeItem("user");
       return response.data;
