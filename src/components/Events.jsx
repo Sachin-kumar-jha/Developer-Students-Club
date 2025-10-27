@@ -3,7 +3,6 @@ import FadeInSection from "./FadeInsection.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEvents } from "../redux/slices/eventSlice.js";
 import EventSkeleton from "./Skeleton/EventSkeleton.jsx";
-//import { toast } from "react-toastify";
 
 export default function Events() {
   const dispatch = useDispatch();
@@ -13,18 +12,9 @@ export default function Events() {
     dispatch(fetchEvents());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if (error) {
-  //     toast.error(error);
-  //   }
-  // }, [error]);
-
+ //Date Logic
   const now = new Date();
-
   const upcomingEvents = events.filter((e) => new Date(e.endDate) >= now);
-
-  console.log("Upcoming Events", upcomingEvents);
-
   return (
     <section id="events" className="py-20">
       <FadeInSection>

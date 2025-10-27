@@ -9,14 +9,10 @@ export const fetchRegistrations = createAsyncThunk(
       let url;
       if (role === "admin") {
         url = `${API_URL}`;
-        console.log("Admin start");
       } else {
         url = `${API_URL}/${userId}`;
       }
-
       const res = await axios.get(url, { withCredentials: true });
-      console.log(res.data.registrations); 
-
       return res.data.registrations;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch registrations");

@@ -10,8 +10,6 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const user = useSelector((state) => state.auth.user);
-  console.log(user);
-  
   const closeMenu = () => setIsOpen(false);
   return (
     <>

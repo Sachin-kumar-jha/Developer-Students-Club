@@ -58,7 +58,6 @@ export default function EventMediaUpload() {
       setFiles([]);
       navigate("/events");
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Upload failed");
     } finally {
       setUploading(false);
