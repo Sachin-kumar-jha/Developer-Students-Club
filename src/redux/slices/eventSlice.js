@@ -17,8 +17,8 @@ export const registerForEvent = createAsyncThunk(
   "events/registerForEvent",
   async (eventId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/registration/register/${eventId}`, {}, {
-        withCredentials: true, // include cookies for auth if needed
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/registration/register/${eventId}`, {
+        withCredentials: true,
       });
       return response.data;
     } catch (error) {
