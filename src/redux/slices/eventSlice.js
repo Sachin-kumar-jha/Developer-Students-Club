@@ -15,9 +15,9 @@ export const fetchEvents = createAsyncThunk("events/fetchEvents", async (_, { re
 
 export const registerForEvent = createAsyncThunk(
   "events/registerForEvent",
-  async (eventId, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/registration/register/${eventId}`,
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/registration/register/${id}`,
         {}, {
         withCredentials: true,
       });
