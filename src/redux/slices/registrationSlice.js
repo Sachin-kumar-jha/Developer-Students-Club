@@ -17,7 +17,7 @@ export const fetchRegistrations = createAsyncThunk(
       const res = await axios.get(url, { withCredentials: true });
       console.log(res.data.registrations); 
 
-      return res.data.registrations;          // return array of registrations
+      return res.data.registrations;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch registrations");
     }
