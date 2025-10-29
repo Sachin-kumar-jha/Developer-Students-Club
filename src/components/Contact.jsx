@@ -35,11 +35,11 @@ export default function Contact() {
 
         {/* Right Image / Location */}
         <FadeInSection>
-          <div class="relative w-full pb-[66.67%]">
+          <div className="relative w-full pb-[66.67%]">
   <iframe
-    class="absolute top-0 left-0 w-full h-full border-0"
+    className="absolute top-0 left-0 w-full h-full border-0"
     src="https://maps.google.com/maps?width=600&height=400&hl=en&q=Rajasthan%20Technical%20University&t=&z=14&ie=UTF8&iwloc=B&output=embed"
-    allowfullscreen=""
+    allowFullScreen=""
     loading="lazy"
   ></iframe>
 </div>
