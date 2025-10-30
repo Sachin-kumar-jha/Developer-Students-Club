@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-//import { fetchAllMedia } from "../redux/slices/mediaSlice";
+import { fetchAllMedia } from "../redux/slices/mediaSlice";
 import { fetchEvents } from "../redux/slices/eventSlice";
 import { motion } from "framer-motion";
 
@@ -26,7 +26,7 @@ export default function GalleryPage() {
   } = useSelector((state) => state.events);
 
   useEffect(() => {
-    //dispatch(fetchAllMedia());
+    dispatch(fetchAllMedia());
     dispatch(fetchEvents());
   }, [dispatch]);
 
