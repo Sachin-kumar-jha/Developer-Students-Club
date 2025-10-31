@@ -33,7 +33,7 @@ export default function App() {
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
       <div className="bg-[#0F1A24] text-white w-full min-h-screen">
         <Navbar />
-        <div className="md:px-10">
+        <div className="md:px-5">
           <Routes>
             {/* Home Page (always accessible) */}
             <Route
@@ -66,9 +66,7 @@ export default function App() {
             <Route
               path="/about"
               element={
-                <ProtectedRoute onAuthRequired={() => setShowAuthModal(true)}>
                   <AboutPage />
-                </ProtectedRoute>
               }
             />
 
@@ -77,9 +75,9 @@ export default function App() {
               path="/events"
               element={
                 <Suspense fallback={<SuspenseLoader />}>
-                  <ProtectedRoute onAuthRequired={() => setShowAuthModal(true)}>
+                  
                     <EventPage />
-                  </ProtectedRoute>
+                 
                 </Suspense>
               }
             />
@@ -115,9 +113,7 @@ export default function App() {
             <Route
               path="/team"
               element={
-                <ProtectedRoute onAuthRequired={() => setShowAuthModal(true)}>
                   <TeamPage />
-                </ProtectedRoute>
               }
             />
 
@@ -126,9 +122,9 @@ export default function App() {
               path="/gallery"
               element={
                 <Suspense fallback={<SuspenseLoader />}>
-                  <ProtectedRoute onAuthRequired={() => setShowAuthModal(true)}>
+                  
                     <GalleryPage />
-                  </ProtectedRoute>
+                  
                 </Suspense>
               }
             />
@@ -136,9 +132,7 @@ export default function App() {
               path="/gallery/highlights/:eventId"
               element={
                 <Suspense fallback={<SuspenseLoader />}>
-                  <ProtectedRoute onAuthRequired={() => setShowAuthModal(true)}>
                     <EventHighlightsPage />
-                  </ProtectedRoute>
                 </Suspense>
               }
             />

@@ -1,13 +1,32 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // For navigation
+import { useNavigate } from "react-router-dom";
 
 export default function PastEventsSection({ media }) {
   const navigate = useNavigate();
 
-  // Group media by event year
-  const mediaByYear = media.reduce((acc, item) => {
-    const year = new Date(item.eventDate || item.date || item.createdAt).getFullYear();
+  //  Group media by eventId
+  const groupedByEvent = media.reduce((acc, item) => {
+    const eventId = item.eventId;
+    if (!acc[eventId]) acc[eventId] = [];
+    acc[eventId].push(item);
+    return acc;
+  }, {});
+
+  //Extract representative media for each event (e.g., first image)
+  
+  const representativeMedia = Object.values(groupedByEvent).map((items) => {
+    const event = items[0];
+    return {
+      eventId: event.eventId,
+      title: event.title,
+      url: items.find((i) => i.url && !i.url.includes("video"))?.url || items[0].url,
+      eventDate: event.eventDate || event.date || event.createdAt,
+    };
+  });
+
+  const mediaByYear = representativeMedia.reduce((acc, item) => {
+    const year = new Date(item.eventDate).getFullYear();
     if (!acc[year]) acc[year] = [];
     acc[year].push(item);
     return acc;
@@ -28,7 +47,7 @@ export default function PastEventsSection({ media }) {
             onClick={() => setYear(y)}
             className={`relative -mb-[1px] pb-2 text-sm font-medium transition-colors ${
               year === y
-                ? "border-b-1 border-gray-400 text-white"
+                ? "border-b border-gray-400 text-white"
                 : "text-gray-400 hover:text-gray-200"
             }`}
           >
@@ -42,7 +61,7 @@ export default function PastEventsSection({ media }) {
         {mediaByYear[year] && mediaByYear[year].length > 0 ? (
           mediaByYear[year].map((item, index) => (
             <motion.div
-              key={item._id || index}
+              key={item.eventId || index}
               className="bg-[#162330] rounded-xl shadow-md overflow-hidden cursor-pointer"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -52,7 +71,7 @@ export default function PastEventsSection({ media }) {
               onClick={() => navigate(`/gallery/highlights/${item.eventId}`)}
             >
               {item.url.includes("video") ? (
-                <video controls className="w-full h-28 object-cover" src={item.url} />
+                <video className="w-full h-28 object-cover" src={item.url} />
               ) : (
                 <img
                   src={item.url}

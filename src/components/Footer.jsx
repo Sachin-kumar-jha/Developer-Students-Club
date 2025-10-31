@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto flex flex-col items-center gap-8 px-6">
         {/* Navigation Links */}
         <nav className="flex flex-wrap justify-center gap-8 text-sm font-medium">
-          <a href="#home" className="hover:text-teal-400 transition">Home</a>
+          <a href="/" className="hover:text-teal-400 transition">Home</a>
           <a href="#about" className="hover:text-teal-400 transition">About</a>
           <a href="#events" className="hover:text-teal-400 transition">Events</a>
           <a href="#team" className="hover:text-teal-400 transition">Team</a>

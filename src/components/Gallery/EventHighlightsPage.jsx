@@ -41,7 +41,7 @@ export default function EventHighlightsPage() {
       >
         <h1 className="text-3xl font-bold mb-2">{event?.title || "Loading..."}</h1>
         <button
-          className="text-teal-400 underline text-sm"
+          className="text-teal-400 underline text-sm cursor-pointer"
           onClick={() => navigate(-1)}
         >
           ← Back to Gallery
