@@ -141,9 +141,7 @@ export default function App() {
             <Route
               path="/contact"
               element={
-                <ProtectedRoute onAuthRequired={() => setShowAuthModal(true)}>
                   <Contact />
-                </ProtectedRoute>
               }
             />
           </Routes>
