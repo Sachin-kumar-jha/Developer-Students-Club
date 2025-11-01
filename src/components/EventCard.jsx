@@ -33,7 +33,7 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
       setAuthModalOpen(true);
       return;
     }
-    navigate(`/events/${eventId}/resources`);
+    navigate(`/gallery/highlights/${eventId}`);
   };
 
   const handleEdit = (id) => {

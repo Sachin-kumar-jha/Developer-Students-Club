@@ -1,12 +1,14 @@
-import { motion} from "framer-motion";
+import { motion,AnimatePresence} from "framer-motion";
 import { Code2, Sparkles, Zap, Users, Cpu, Terminal, Rocket, Binary, GitBranch, Braces, Database, Cloud } from "lucide-react";
 import { useState, useEffect } from "react";
-
+import { useSelector } from "react-redux";
+import AuthModal from "./AuthModal";
 export default function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [codeLines, setCodeLines] = useState([]);
   const [terminalText, setTerminalText] = useState("");
-
+  const [showAuthModal, setShowAuthModal] = useState(false);
+const user = useSelector((state) => state.auth.user);
   // Generate random code snippets
   useEffect(() => {
     const snippets = [
@@ -67,6 +69,7 @@ export default function Hero() {
   ];
 
   return (
+    <>
     <motion.section
       id="home"
       className="relative min-h-screen w-full  p-10  flex items-center justify-center overflow-hidden bg-black"
@@ -286,18 +289,18 @@ export default function Hero() {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
         >
-          <motion.a
-            href="#contact"
+          <motion.button
             whileHover={{ 
               scale: 1.05,
               boxShadow: "0 0 30px rgba(20, 184, 166, 0.6)",
             }}
+            onClick={() => setShowAuthModal(true)}
             whileTap={{ scale: 0.95 }}
-            className="group relative px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-black rounded font-bold overflow-hidden font-mono uppercase tracking-wider"
+            className="group relative px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-black rounded cursor-pointer font-bold overflow-hidden font-mono uppercase tracking-wider"
           >
             <span className="relative z-10 flex items-center gap-2">
               <Terminal size={20} />
-              ./join_community.sh
+              {!user? "./join_community.sh":`Welcome ./${user?.name}`}
             </span>
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400"
@@ -305,7 +308,7 @@ export default function Hero() {
               whileHover={{ x: 0 }}
               transition={{ duration: 0.3 }}
             />
-          </motion.a>
+          </motion.button>
           
           <motion.a
             href="#events"
@@ -335,5 +338,9 @@ export default function Hero() {
         }}
       />
     </motion.section>
+ <AnimatePresence>
+        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      </AnimatePresence>
+</>
   );
 }
