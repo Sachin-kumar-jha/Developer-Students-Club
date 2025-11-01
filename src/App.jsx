@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { useState } from "react";
 import Navbar from "./components/Navbar";
@@ -26,11 +26,12 @@ const GalleryPage = lazy(() => import("./pages/GalleryPage.jsx"));
 const EventHighlightsPage = lazy(() => import("./components/Gallery/EventHighlightsPage"));
 
 export default function App() {
+  const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   return (
     <>
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      {showAuthModal && <AuthModal onClose={() => { setShowAuthModal(false); navigate("/")}} />}
       <div className="bg-[#0F1A24] text-white w-full min-h-screen">
         <Navbar />
         <div className="md:px-5">
