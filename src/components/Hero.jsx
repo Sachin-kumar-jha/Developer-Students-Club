@@ -320,54 +320,6 @@ export default function Hero() {
             ls ./events
           </motion.a>
         </motion.div>
-
-        {/* Stats Dashboard */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-          className="grid grid-cols-3 gap-6 max-w-3xl mx-auto"
-        >
-          {[
-            { number: "500+", label: "Members", icon: Users, color: "teal" },
-            { number: "50+", label: "Events", icon: Rocket, color: "cyan" },
-            { number: "100+", label: "Projects", icon: Code2, color: "green" },
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ 
-                scale: 1.08,
-                y: -5,
-              }}
-              className="relative group"
-            >
-              <div className="relative p-6 bg-black/60 backdrop-blur-sm border border-teal-500/30 rounded overflow-hidden">
-                {/* Corner Accents */}
-                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-teal-400"></div>
-                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-teal-400"></div>
-                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-teal-400"></div>
-                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-teal-400"></div>
-                
-                <stat.icon className="w-8 h-8 mx-auto mb-3 text-teal-400 group-hover:scale-110 transition-transform" />
-                <motion.div 
-                  className="text-3xl md:text-4xl font-bold text-teal-400 mb-2 font-mono"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  {stat.number}
-                </motion.div>
-                <div className="text-sm text-gray-400 font-mono uppercase tracking-wider">
-                  {stat.label}
-                </div>
-                
-                {/* Glow effect on hover */}
-                <motion.div
-                  className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
-                  initial={{ opacity: 0 }}
-                />
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
       </div>
 
       {/* Bottom Scan Line */}
