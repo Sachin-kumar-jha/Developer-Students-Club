@@ -9,14 +9,17 @@ export default function AvatarMenu({ user }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const firstLetter = user?.name?.[0]?.toUpperCase();
+  const [loading,setLoading]=useState(false);
   const handleProfileClick = () => {
     setOpen(false);
     navigate(`/profile/${user.id}`); // Redirect to profile page
   };
 
   const handleLogoutClick =async () => {
+    setLoading(true);
     const res= await dispatch(logoutUser()).unwrap();
     setOpen(false);
+    setLoading(false);
     navigate("/");
     toast.success(`${res?.message}`);
   };
@@ -50,7 +53,10 @@ export default function AvatarMenu({ user }) {
               className="block w-full text-left px-4 py-2 hover:bg-teal-500/20"
               onClick={handleLogoutClick}
             >
-              Logout
+              {loading?<>
+      <span className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></span>
+      Logging out...
+    </>:"Logout"}
             </button>
           </motion.div>
         )}
