@@ -32,7 +32,7 @@ export default function App() {
   return (
     <>
       {showAuthModal && <AuthModal onClose={() => { setShowAuthModal(false); navigate("/")}} />}
-      <div className="bg-[#0F1A24] text-white w-full min-h-screen">
+      <div className="bg-[#0F1A24] text-white w-full min-h-screen select-none">
         <Navbar />
         <div className="md:px-5">
           <Routes>
