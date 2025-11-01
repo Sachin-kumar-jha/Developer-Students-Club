@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, registerUser } from "../redux/slices/authSlice";
 import { toast } from "react-toastify";
+import LoaderSkeleton from "./Skeleton/LoaderSkeleton";
 export default function AuthModal({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -97,7 +98,7 @@ export default function AuthModal({ onClose }) {
             disabled={loading}
             className="bg-teal-400 text-black font-semibold py-2 rounded hover:bg-teal-300 disabled:opacity-50"
           >
-            {loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
+            {loading ? <LoaderSkeleton size="w-6 h-6" color="white"/> : isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
 

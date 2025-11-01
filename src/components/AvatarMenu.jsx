@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../redux/slices/authSlice";
 import { toast } from "react-toastify";
+
+import { Loader } from "lucide-react";
+import LoaderSkeleton from "./Skeleton/LoaderSkeleton";
 export default function AvatarMenu({ user }) {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
@@ -53,9 +56,7 @@ export default function AvatarMenu({ user }) {
               className="block w-full text-left px-4 py-2 hover:bg-teal-500/20"
               onClick={handleLogoutClick}
             >
-              {loading?<>
-      <span className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></span>
-    </>:"Logout"}
+              {loading?<LoaderSkeleton color="white"/>:"Logout"}
             </button>
           </motion.div>
         )}
