@@ -1,6 +1,4 @@
 import FadeInSection from "./FadeInsection.jsx";
-// import clubMap from "../assets/club-map.jpg"; // 👉 add map/location image in src/assets
-
 export default function Contact() {
   return (
     <section id="contact" className="py-20 max-w-6xl bg-white/2 mx-auto px-6">
