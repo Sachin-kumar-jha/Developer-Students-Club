@@ -157,38 +157,12 @@ export default function Hero() {
             </feMerge>
           </filter>
         </defs>
-        <motion.circle
-          cx="20%"
-          cy="30%"
-          r="150"
-          fill="url(#gradient1)"
-          filter="url(#glow)"
-          opacity="0.3"
-          animate={{
-            r: [150, 180, 150],
-            cx: [`${20 + mousePosition.x * 0.01}%`, `${20 + mousePosition.x * 0.01}%`],
-            cy: [`${30 + mousePosition.y * 0.01}%`, `${30 + mousePosition.y * 0.01}%`],
-          }}
-          transition={{
-            r: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-        <motion.circle
-          cx="80%"
-          cy="70%"
-          r="120"
-          fill="url(#gradient2)"
-          filter="url(#glow)"
-          opacity="0.3"
-          animate={{
-            r: [120, 150, 120],
-            cx: [`${80 - mousePosition.x * 0.01}%`, `${80 - mousePosition.x * 0.01}%`],
-            cy: [`${70 - mousePosition.y * 0.01}%`, `${70 - mousePosition.y * 0.01}%`],
-          }}
-          transition={{
-            r: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
+        <motion.g
+  style={{ transform: `translate(${mousePosition.x * 0.05}px, ${mousePosition.y * 0.05}px)` }}
+>
+  <circle cx="20%" cy="30%" r="150" fill="url(#gradient1)" opacity="0.3" />
+  <circle cx="20%" cy="30%" r="150" fill="url(#gradient2)" opacity="0.3" />
+</motion.g>
         <defs>
           <radialGradient id="gradient1">
             <stop offset="0%" stopColor="#14b8a6" />
