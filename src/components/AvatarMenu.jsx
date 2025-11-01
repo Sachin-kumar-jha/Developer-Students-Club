@@ -55,7 +55,6 @@ export default function AvatarMenu({ user }) {
             >
               {loading?<>
       <span className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></span>
-      Logging out...
     </>:"Logout"}
             </button>
           </motion.div>
