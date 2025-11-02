@@ -75,10 +75,8 @@ export default function App() {
             <Route
               path="/events"
               element={
-                <Suspense fallback={<SuspenseLoader />}>
-                  
+                <Suspense fallback={<SuspenseLoader/>}>
                     <EventPage />
-                 
                 </Suspense>
               }
             />
@@ -132,7 +130,7 @@ export default function App() {
             <Route
               path="/gallery/highlights/:eventId"
               element={
-                <Suspense fallback={<SuspenseLoader />}>
+                <Suspense fallback={<SuspenseLoader/>}>
                     <EventHighlightsPage />
                 </Suspense>
               }

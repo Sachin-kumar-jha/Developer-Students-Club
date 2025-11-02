@@ -50,7 +50,7 @@ export default function Navbar() {
           className="mx-auto bg-[#0F1A24]/95 backdrop-blur-md shadow-lg border border-gray-700/50"
           initial={false}
           animate={{
-            maxWidth: isScrolled ? "90%" : "100%",
+            maxWidth: isScrolled ? "70%" : "100%",
             borderRadius: isScrolled ? "1rem" : "0",
             marginTop: isScrolled ? "0.5rem" : "0",
           }}
