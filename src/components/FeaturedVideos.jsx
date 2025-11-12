@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import thumnail from "../assets/carbon.png"
 // import video from "../assets/video.mp4"
-export default function FeaturedVideos() {
+export default function FeaturedVideos({videos}) {
   const [videoError, setVideoError] = useState(false);
 
   return (
@@ -22,7 +22,7 @@ export default function FeaturedVideos() {
             poster={thumnail}
             className="w-full h-[400px] object-cover"
             onError={() => setVideoError(true)}
-            src={""}
+            src={`${videos[0].url}`}
           >
             {/* <source src="/videos/featured-event.mp4" type="video/mp4" />
             Your browser does not support the video tag. */}
