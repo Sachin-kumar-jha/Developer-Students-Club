@@ -23,7 +23,7 @@ export default function PastEventsSection({ media }) {
       url: items.find((i) => i.url && !i.url.includes("video"))?.url || items[0].url,
       eventDate: event.eventDate || event.date || event.createdAt,
     };
-  });
+  }).filter((item) => item.url);
 
   const mediaByYear = representativeMedia.reduce((acc, item) => {
     const year = new Date(item.eventDate).getFullYear();

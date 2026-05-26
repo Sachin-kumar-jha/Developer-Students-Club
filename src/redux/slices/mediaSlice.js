@@ -1,11 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const normalizeMedia = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.media)) return payload.media;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
 
 export const fetchAllMedia = createAsyncThunk("media/fetchAll", async (_, thunkAPI) => {
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/media`);
-    return res.data.data;
+    return normalizeMedia(res.data);
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Failed to fetch media");
   }
@@ -14,7 +20,7 @@ export const fetchAllMedia = createAsyncThunk("media/fetchAll", async (_, thunkA
 export const fetchMediaByEventId = createAsyncThunk("media/fetchByEvent", async (eventId, thunkAPI) => {
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/media/event/${eventId}`);
-    return res.data.data;
+    return normalizeMedia(res.data);
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Failed to fetch event media");
   }

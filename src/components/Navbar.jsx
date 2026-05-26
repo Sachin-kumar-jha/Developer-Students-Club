@@ -168,7 +168,8 @@ export default function Navbar() {
 
               <div className="flex flex-col items-start gap-6 p-6 text-gray-300 overflow-y-auto">
                 <motion.div
-                  whileHover={{ x: 5, color: "#5eead4" }}
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link onClick={closeMenu} to="/" className="text-lg">
@@ -176,7 +177,8 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
                 <motion.div
-                  whileHover={{ x: 5, color: "#5eead4" }}
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link onClick={closeMenu} to="/about" className="text-lg">
@@ -184,7 +186,8 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
                 <motion.div
-                  whileHover={{ x: 5, color: "#5eead4" }}
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link onClick={closeMenu} to="/events" className="text-lg">
@@ -192,7 +195,8 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
                 <motion.div
-                  whileHover={{ x: 5, color: "#5eead4" }}
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link onClick={closeMenu} to="/team" className="text-lg">
@@ -200,7 +204,8 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
                 <motion.div
-                  whileHover={{ x: 5, color: "#5eead4" }}
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link onClick={closeMenu} to="/gallery" className="text-lg">
@@ -208,7 +213,8 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
                 <motion.div
-                  whileHover={{ x: 5, color: "#5eead4" }}
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link onClick={closeMenu} to="/contact" className="text-lg">

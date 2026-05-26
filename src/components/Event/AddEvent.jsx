@@ -20,6 +20,8 @@ export default function AddEventPage() {
     startDate: "",
     endDate: "",
     location: "",
+    fee: "",
+    upiId: "",
     bannerImage: "",
   });
   const [showEmojiPicker, setShowEmojiPicker] = useState({ title: false, description: false });
@@ -40,6 +42,8 @@ export default function AddEventPage() {
             startDate: event.startDate?.split("T")[0] || "",
             endDate: event.endDate?.split("T")[0] || "",
             location: event.location || "",
+            fee: event.fee || "",
+            upiId: event.upiId || "",
             bannerImage: event.bannerImage || ""
           });
         } catch {
@@ -199,6 +203,33 @@ export default function AddEventPage() {
               placeholder="Enter location"
               className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
             />
+          </div>
+
+          {/* Banner Image */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-300">Event Fee</label>
+              <input
+                type="number"
+                name="fee"
+                min="0"
+                value={formData.fee}
+                onChange={handleChange}
+                placeholder="0 for free event"
+                className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-300">UPI ID</label>
+              <input
+                type="text"
+                name="upiId"
+                value={formData.upiId}
+                onChange={handleChange}
+                placeholder="club@upi"
+                className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
+              />
+            </div>
           </div>
 
           {/* Banner Image */}

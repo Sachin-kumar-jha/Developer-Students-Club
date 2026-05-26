@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import FadeInSection from "./FadeInsection.jsx";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 
 const team = [
@@ -10,6 +12,23 @@ const team = [
 ];
 
 export default function Team() {
+  const [members, setMembers] = useState(team);
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/team`);
+        if (response.data?.data?.length) {
+          setMembers(response.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch team members:", error);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
+
   return (
     <section id="team" className="py-20 max-w-6xl mx-auto text-left px-6">
       <FadeInSection>
@@ -17,7 +36,7 @@ export default function Team() {
       </FadeInSection>
 
     <div className="flex  flex-start flex-wrap justify-around">
-        {team.map((member, index) => (
+        {members.map((member, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
@@ -29,8 +48,9 @@ export default function Team() {
             {/* Circular image */}
             <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg">
               <img
-                src={member.img}
+                src={member.profileImage || member.img}
                 alt={member.name}
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             </div>

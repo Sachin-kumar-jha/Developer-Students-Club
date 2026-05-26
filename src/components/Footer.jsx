@@ -19,10 +19,10 @@ export default function Footer() {
           <a href="https://github.com" target="_blank" rel="noreferrer">
             <Github className="w-6 h-6 hover:text-teal-400 transition" />
           </a>
-          <a href="https://linkedin.com" target="_blank" rel="noreferrer">
+          <a href="https://www.linkedin.com/company/developer-student-club-rtu-kota/ " target="_blank" rel="noreferrer">
             <Linkedin className="w-6 h-6 hover:text-teal-400 transition" />
           </a>
-          <a href="https://instagram.com" target="_blank" rel="noreferrer">
+          <a href="https://www.instagram.com/dsc_rtu/" target="_blank" rel="noreferrer">
             <Instagram className="w-6 h-6 hover:text-teal-400 transition" />
           </a>
           <a href="https://twitter.com" target="_blank" rel="noreferrer">

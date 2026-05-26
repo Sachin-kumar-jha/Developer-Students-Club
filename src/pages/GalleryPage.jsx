@@ -51,7 +51,7 @@ export default function GalleryPage() {
             return {
               eventId: event._id,
               title: event.title,
-              highlightImage: eventMedia.find((m) => !m.url.includes("video")),
+              highlightImage: eventMedia.find((m) => m.url && !m.url.includes("video")),
               media: eventMedia,
             };
           })
@@ -72,7 +72,7 @@ export default function GalleryPage() {
 
   // Filter and sort only videos by latest createdAt
 const videos = allMedia
-  .filter((m) => m.type === "video" || m.url.includes("video"))
+  .filter((m) => m.type === "video" || m.url?.includes("video"))
   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
