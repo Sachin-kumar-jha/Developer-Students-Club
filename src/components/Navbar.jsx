@@ -4,21 +4,36 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo from "../assets/image.png";
 import AuthModal from "./AuthModal.jsx";
 import AvatarMenu from "./AvatarMenu.jsx";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutUser } from "../redux/slices/authSlice";
+import { toast } from "react-toastify";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   
   const closeMenu = () => setIsOpen(false);
 
+  const handleMobileLogout = async () => {
+    try {
+      const res = await dispatch(logoutUser()).unwrap();
+      toast.success(res?.message || "Logged out successfully");
+      closeMenu();
+    } catch (err) {
+      toast.error("Logout failed");
+    }
+  };
+
   useEffect(() => {
-    // Set initial scroll state immediately on mount
+    // Set initial scroll and mobile state on mount
     const initialScroll = window.scrollY > 100;
     setIsScrolled(initialScroll);
+    setIsMobile(window.innerWidth < 768);
     
     // Disable initial load flag after a brief moment
     setTimeout(() => {
@@ -33,8 +48,17 @@ export default function Navbar() {
       }
     };
 
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
@@ -50,7 +74,7 @@ export default function Navbar() {
           className="mx-auto bg-[#0F1A24]/95 backdrop-blur-md shadow-lg border border-gray-700/50"
           initial={false}
           animate={{
-            maxWidth: isScrolled ? "70%" : "100%",
+            maxWidth: isScrolled ? (isMobile ? "92%" : "70%") : "100%",
             borderRadius: isScrolled ? "1rem" : "0",
             marginTop: isScrolled ? "0.5rem" : "0",
           }}
@@ -236,8 +260,29 @@ export default function Navbar() {
                       Join Us
                     </motion.button>
                   ) : (
-                    <div className="flex justify-center w-full">
-                      <AvatarMenu user={user} />
+                    <div className="flex flex-col items-start gap-4 w-full pl-2">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-teal-500 text-black font-bold flex items-center justify-center">
+                          {user?.name?.[0]?.toUpperCase() || "U"}
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-white truncate max-w-[150px]">{user.name}</p>
+                          <p className="text-xs text-gray-500">Team Member</p>
+                        </div>
+                      </div>
+                      <Link 
+                        to={`/profile/${user.id}`} 
+                        onClick={closeMenu} 
+                        className="text-gray-300 hover:text-teal-400 text-base"
+                      >
+                        Profile
+                      </Link>
+                      <button 
+                        onClick={handleMobileLogout} 
+                        className="text-gray-300 hover:text-red-400 text-base text-left w-full cursor-pointer bg-transparent border-0 p-0 outline-none"
+                      >
+                        Logout
+                      </button>
                     </div>
                   )}
                 </div>
