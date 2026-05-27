@@ -1,6 +1,35 @@
 import { motion } from "framer-motion";
 import image from "../assets/club-map.jpg"
+import axios from "axios";
+import { useEffect, useState } from "react";
+
+const fallbackTeam = [
+  { name: "Ethan Carter", role: "President", profileImage: image },
+  { name: "Olivia Bennett", role: "Vice President", profileImage: image },
+  { name: "Noah Thompson", role: "Technical Lead", profileImage: image },
+  { name: "Ava Harper", role: "Marketing Lead", profileImage: image },
+  { name: "Liam Foster", role: "Outreach Coordinator", profileImage: image },
+  { name: "Isabella Hayes", role: "Community Manager", profileImage: image },
+];
+
 export default function TeamPage() {
+  const [teamMembers, setTeamMembers] = useState(fallbackTeam);
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/team`);
+        if (response.data?.data?.length) {
+          setTeamMembers(response.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch team members:", error);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
+
   // Variants for staggered animations
   const container = {
     hidden: { opacity: 0 },
@@ -37,46 +66,6 @@ export default function TeamPage() {
         </p>
       </motion.section>
 
-      {/* Core Team */}
-      <motion.section
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-        className="max-w-5xl mx-auto"
-      >
-        <h2 className="text-2xl font-semibold tracking-tighter mb-6">Our Core Team</h2>
-        <motion.div
-          variants={container}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-16"
-        >
-          {[
-            { name: "Ethan Carter", role: "President" },
-            { name: "Olivia Bennett", role: "Vice President" },
-            { name: "Noah Thompson", role: "Technical Lead" },
-            { name: "Ava Harper", role: "Marketing Lead" },
-            { name: "Liam Foster", role: "Outreach Coordinator" },
-            { name: "Isabella Hayes", role: "Community Manager" },
-          ].map((person, idx) => (
-            <motion.div
-              key={idx}
-              variants={item}
-              className="flex flex-col items-center text-center"
-            >
-              <div className="w-30 h-30 rounded-full bg-gray-700 mb-3 overflow-hidden">
-                <img
-                src={image}
-                alt="ADVISOR IMAGE"
-                className="w-full h-full object-cover"
-              />
-              </div>
-              <h3 className="font-semibold">{person.name}</h3>
-              <p className="text-sm text-gray-400">{person.role}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.section>
-
       {/* Advisors */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
@@ -86,7 +75,7 @@ export default function TeamPage() {
         className="max-w-5xl mx-auto"
       >
         <h2 className="text-2xl font-semibold mb-6">Our Advisors</h2>
-        <div className="grid md:grid-cols-2  mb-16">
+        <div className="flex justify-center mb-16">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -96,31 +85,45 @@ export default function TeamPage() {
             <div className="w-48 h-48 rounded-full bg-gray-700 mb-4 overflow-hidden">
                 <img
                 src={image}
-                alt="ADVISOR IMAGE"
+                alt="Faculty Advisor"
                 className="w-full h-full object-cover"
               />
             </div>
-            <h3 className="font-semibold">Dr. Eleanor Reed</h3>
-            <p className="text-sm text-gray-400">Faculty Advisor</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col items-center text-center"
-          >
-            <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg">
-              <img
-                src={image}
-                alt="ADVISOR IMAGE"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h3 className="font-semibold">Prof. Samuel Walker</h3>
-            <p className="text-sm text-gray-400">Mentor</p>
+            <h3 className="font-semibold text-lg">Dr. Nirmala Sharma</h3>
+            <p className="text-sm text-gray-400">Faculty Coordinator</p>
           </motion.div>
         </div>
+      </motion.section>
+
+      {/* Core Team */}
+      <motion.section
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        className="max-w-5xl mx-auto"
+      >
+        <h2 className="text-2xl font-semibold tracking-tighter mb-6">Our Core Team</h2>
+        <motion.div key={teamMembers.length} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-16">
+          {teamMembers.map((person, idx) => (
+            <div
+              key={person._id || idx}
+              className="flex flex-col items-center text-center"
+              style={{ opacity: 1 }}
+            >
+              <div className="w-32 h-32 rounded-full bg-gray-700 mb-3 overflow-hidden">
+                <img
+                src={person.profileImage || image}
+                alt={person.name}
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+              </div>
+              <h3 className="font-semibold">{person.name}</h3>
+              <p className="text-sm text-gray-400">{person.role}</p>
+            </div>
+          ))}
+        </motion.div>
       </motion.section>
 
       {/* CTA */}

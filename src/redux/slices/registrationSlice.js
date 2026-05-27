@@ -20,6 +20,22 @@ export const fetchRegistrations = createAsyncThunk(
   }
 );
 
+export const updatePaymentStatus = createAsyncThunk(
+  "registrations/updatePaymentStatus",
+  async ({ registrationId, paymentStatus, adminNote }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(
+        `${API_URL}/${registrationId}/payment-status`,
+        { paymentStatus, adminNote },
+        { withCredentials: true }
+      );
+      return res.data.registration;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to update payment status");
+    }
+  }
+);
+
 const registrationSlice = createSlice({
   name: "registrations",
   initialState: {
@@ -44,6 +60,14 @@ const registrationSlice = createSlice({
       })
       .addCase(fetchRegistrations.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updatePaymentStatus.fulfilled, (state, action) => {
+        state.registrations = state.registrations.map((registration) =>
+          registration._id === action.payload._id ? action.payload : registration
+        );
+      })
+      .addCase(updatePaymentStatus.rejected, (state, action) => {
         state.error = action.payload;
       });
   },

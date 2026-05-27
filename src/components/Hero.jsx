@@ -1,6 +1,6 @@
 import { motion,AnimatePresence} from "framer-motion";
 import { Code2, Sparkles, Zap, Users, Cpu, Terminal, Rocket, Binary, GitBranch, Braces, Database, Cloud } from "lucide-react";
-import { useState, useEffect } from "react";
+import { createElement, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import AuthModal from "./AuthModal";
 export default function Hero() {
@@ -201,7 +201,7 @@ const user = useSelector((state) => state.auth.user);
             transition: { duration: 0.3 },
           }}
         >
-          <Icon size={50} strokeWidth={1.5} />
+          {createElement(Icon, { size: 50, strokeWidth: 1.5 })}
         </motion.div>
       ))}
 

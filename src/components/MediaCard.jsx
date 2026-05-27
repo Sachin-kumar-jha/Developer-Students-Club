@@ -2,7 +2,10 @@ import { useState } from "react";
 
 export default function MediaCard({ media }) {
   const [isOpen, setIsOpen] = useState(false);
-  const isVideo = media.url.includes("video");
+  const mediaUrl = media?.url || "";
+  const isVideo = mediaUrl.includes("video");
+
+  if (!mediaUrl) return null;
 
   return (
     <>
@@ -13,13 +16,13 @@ export default function MediaCard({ media }) {
       >
         {isVideo ? (
           <video
-            src={media.url}
+            src={mediaUrl}
             controls
             className="w-full h-36 object-cover"
           />
         ) : (
           <img
-            src={media.url}
+            src={mediaUrl}
             alt={media.title || "Media"}
             className="w-full h-36 object-cover"
           />
@@ -38,14 +41,14 @@ export default function MediaCard({ media }) {
           <div className="relative max-w-3xl w-full p-4">
             {isVideo ? (
               <video
-                src={media.url}
+                src={mediaUrl}
                 controls
                 autoPlay
                 className="w-full max-h-[80vh] object-contain"
               />
             ) : (
               <img
-                src={media.url}
+                src={mediaUrl}
                 alt={media.title || "Media"}
                 className="w-full max-h-[80vh] object-contain rounded"
               />

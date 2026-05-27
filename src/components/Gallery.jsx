@@ -15,7 +15,7 @@ export default function Gallery() {
 
   // Take first 6 images (ignore videos)
   const images = allMedia
-    ? allMedia.filter((m) => !m.url.includes("video")).slice(0, 6)
+    ? allMedia.filter((m) => m.url && !m.url.includes("video")).slice(0, 6)
     : [];
 
   if (error) return <p className="text-center text-red-400 mt-10">{error}</p>;
