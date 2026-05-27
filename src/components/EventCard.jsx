@@ -101,101 +101,134 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
 
       <motion.div
         key={event._id || event.id || index}
-        className="grid md:grid-cols-2 gap-8 items-center mb-10"
-        initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: index * 0.2 }}
+        className="bg-[#0F1A24]/40 backdrop-blur-md border border-gray-800/80 rounded-3xl p-6 md:p-8 hover:border-teal-500/30 hover:shadow-[0_15px_30px_-10px_rgba(20,184,166,0.15)] transition-all duration-300 shadow-xl group mb-10"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: index * 0.15 }}
         viewport={{ once: true }}
       >
-        <div>
-          <h3 className="text-xl font-semibold mb-2">{event.title}</h3>
-          <p className="text-gray-400 mb-4">
-            {event.description?.length > 100
-              ? `${event.description.slice(0, 100)}...`
-              : event.description}
-          </p>
-
-          {!isAdmin && !isPast && (
-            <>
-              <p className="text-gray-500 text-sm mb-2">
-                Start Date:{" "}
-                {new Date(event.startDate).toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-              <p className="text-gray-500 text-sm mb-4">
-                End Date:{" "}
-                {new Date(event.endDate).toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-              <p className="text-sm mb-4 text-teal-300">
-                {(event.fee || 0) > 0 ? `Fee: Rs. ${event.fee}` : "Free event"}
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-5 py-2 bg-teal-600 hover:bg-teal-400 rounded-lg shadow-md transition mb-2 cursor-pointer"
-                disabled={loading}
-                onClick={() => handleRegister(event._id)}
-              >
-                {loading
-                  ? "Registering..."
-                  : (event.fee || 0) > 0
-                    ? `Pay Rs. ${event.fee} & Register`
-                    : "Register ->"}
-              </motion.button>
-            </>
-          )}
-
-          {!isAdmin && isPast && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg shadow-md transition mb-2 cursor-pointer"
-              onClick={() => handleResources(event._id)}
-            >
-              View Resources
-            </motion.button>
-          )}
-
-          {isAdmin && (
-            <div className="mt-2 flex gap-2">
-              <button
-                onClick={() => handleEdit(event._id)}
-                className="px-3 py-1 bg-teal-600 hover:bg-cyan-400 rounded"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(event._id)}
-                className="px-3 py-1 bg-teal-600 hover:bg-teal-400 rounded"
-              >
-                {deletingId === event._id ? "...deleting" : "Delete"}
-              </button>
-              <button
-                onClick={() => handleMediaUpload(event._id)}
-                className="px-3 py-1 bg-teal-600 hover:bg-teal-400 rounded"
-              >
-                Event Media
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          {/* Details Section */}
+          <div className="md:col-span-7 text-left order-2 md:order-1">
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                isPast 
+                  ? "bg-gray-800 text-gray-400 border border-gray-700/60" 
+                  : "bg-teal-500/10 text-teal-400 border border-teal-500/20"
+              }`}>
+                {isPast ? "Past Event" : "Upcoming"}
+              </span>
+              <span className="text-[10px] font-semibold bg-white/5 text-teal-300 border border-white/5 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                {(event.fee || 0) > 0 ? `Rs. ${event.fee}` : "Free"}
+              </span>
             </div>
-          )}
-        </div>
 
-        <motion.img
-          src={
-            event.image ||
-            "https://t3.ftcdn.net/jpg/14/13/82/90/240_F_1413829003_bQFOIiMsXDLCJYp8KbVTTabm7RUv8GS7.jpg"
-          }
-          alt={event.title}
-          className="rounded-xl shadow-lg cursor-pointer"
-          whileHover={{ scale: 1.03 }}
-        />
+            <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300">
+              {event.title}
+            </h3>
+            
+            <p className="text-sm text-gray-400 font-light leading-relaxed mb-6">
+              {event.description}
+            </p>
+
+            {/* Date Details */}
+            <div className="flex flex-col gap-2 mb-6 font-mono text-xs text-gray-450">
+              <div className="flex items-center gap-2">
+                <span className="text-teal-400">▸ Start:</span>
+                <span>
+                  {new Date(event.startDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-teal-400">▸ End: &nbsp;</span>
+                <span>
+                  {new Date(event.endDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-3">
+              {!isAdmin && !isPast && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-bold font-mono uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-all duration-300"
+                  disabled={loading}
+                  onClick={() => handleRegister(event._id)}
+                >
+                  {loading
+                    ? "Registering..."
+                    : (event.fee || 0) > 0
+                      ? `Pay & Register`
+                      : "Register Now ➔"}
+                </motion.button>
+              )}
+
+              {!isAdmin && isPast && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-6 py-3 bg-[#0F1A24] border border-gray-800 hover:border-teal-500/30 hover:bg-teal-500/10 text-teal-400 font-semibold font-mono uppercase tracking-wider rounded-xl cursor-pointer transition-all duration-300"
+                  onClick={() => handleResources(event._id)}
+                >
+                  View Resources
+                </motion.button>
+              )}
+
+              {isAdmin && (
+                <div className="flex flex-wrap gap-2.5 mt-2">
+                  <button
+                    onClick={() => handleEdit(event._id)}
+                    className="px-4 py-2 bg-[#0F1A24] border border-teal-500/40 text-teal-400 hover:bg-teal-500/10 font-mono text-xs font-semibold rounded-lg transition duration-300 cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(event._id)}
+                    className="px-4 py-2 bg-red-950/20 border border-red-500/40 text-red-400 hover:bg-red-500/10 font-mono text-xs font-semibold rounded-lg transition duration-300 cursor-pointer"
+                  >
+                    {deletingId === event._id ? "Deleting..." : "Delete"}
+                  </button>
+                  <button
+                    onClick={() => handleMediaUpload(event._id)}
+                    className="px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-mono text-xs font-bold rounded-lg hover:shadow-[0_0_15px_rgba(20,184,166,0.3)] transition duration-300 cursor-pointer"
+                  >
+                    Upload Media
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Image Section */}
+          <div className="md:col-span-5 order-1 md:order-2">
+            <div className="w-full h-56 md:h-64 rounded-2xl overflow-hidden border border-gray-800/80 shadow-lg relative bg-gray-900/60">
+              <img
+                src={
+                  event.image ||
+                  "https://t3.ftcdn.net/jpg/14/13/82/90/240_F_1413829003_bQFOIiMsXDLCJYp8KbVTTabm7RUv8GS7.jpg"
+                }
+                alt={event.title}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+              />
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {paymentEvent && (
