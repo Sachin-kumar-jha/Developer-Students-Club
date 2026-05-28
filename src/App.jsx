@@ -1,6 +1,6 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
@@ -18,6 +18,8 @@ import { SuspenseLoader } from "./components/Skeleton/SuspenseLoader";
 import { ToastContainer } from "react-toastify";
 import AuthModal from "./components/AuthModal.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Preloader from "./components/Preloader.jsx";
+import { AnimatePresence, motion } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
 
 // Lazy load pages
@@ -29,11 +31,38 @@ const EventHighlightsPage = lazy(() => import("./components/Gallery/EventHighlig
 export default function App() {
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isPreloading, setIsPreloading] = useState(true);
+
+  useEffect(() => {
+    if (isPreloading) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isPreloading]);
 
   return (
     <>
+      <AnimatePresence mode="wait">
+        {isPreloading && (
+          <Preloader onComplete={() => setIsPreloading(false)} />
+        )}
+      </AnimatePresence>
+
       {showAuthModal && <AuthModal onClose={() => { setShowAuthModal(false); navigate("/")}} />}
-      <div className="bg-[#0F1A24] text-white w-full min-h-screen select-none">
+      
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ 
+          opacity: isPreloading ? 0 : 1, 
+          scale: isPreloading ? 0.98 : 1 
+        }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="bg-[#0F1A24] text-white w-full min-h-screen select-none"
+      >
         <Navbar />
         <div className="md:px-5">
           <Routes>
@@ -165,7 +194,7 @@ export default function App() {
           pauseOnHover
         />
         <Footer />
-      </div>
+      </motion.div>
     </>
   );
 }

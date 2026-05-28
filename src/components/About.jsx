@@ -1,6 +1,85 @@
 import FadeInSection from "./FadeInsection.jsx";
 import { Code, Smartphone, Cloud, Brain } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useInView } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+
+// Count Up animation component
+function Counter({ value, suffix = "" }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const end = parseInt(value, 10);
+      if (isNaN(end)) return;
+      if (start === end) return;
+
+      const duration = 1500;
+      const incrementTime = Math.max(Math.floor(duration / end), 15);
+      
+      const timer = setInterval(() => {
+        start += Math.ceil(end / 60);
+        if (start >= end) {
+          clearInterval(timer);
+          setCount(end);
+        } else {
+          setCount(start);
+        }
+      }, incrementTime);
+
+      return () => clearInterval(timer);
+    }
+  }, [isInView, value]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+}
+
+// 3D Card Tilt component
+function TiltCard({ children, className }) {
+  const cardRef = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useTransform(y, [-150, 150], [10, -10]);
+  const rotateY = useTransform(x, [-150, 150], [-10, 10]);
+
+  function handleMouseMove(event) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = event.clientX - rect.left - width / 2;
+    const mouseY = event.clientY - rect.top - height / 2;
+    x.set(mouseX);
+    y.set(mouseY);
+  }
+
+  function handleMouseLeave() {
+    x.set(0);
+    y.set(0);
+  }
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX: rotateX,
+        rotateY: rotateY,
+        transformStyle: "preserve-3d",
+        perspective: 1000,
+      }}
+      className={className}
+    >
+      <div style={{ transform: "translateZ(20px)" }} className="h-full w-full">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
 
 export default function About() {
   const features = [
@@ -53,15 +132,21 @@ export default function About() {
           <FadeInSection>
             <div className="grid grid-cols-3 gap-6 pt-6 border-t border-gray-800">
               <div>
-                <h4 className="text-3xl font-extrabold text-teal-400">500+</h4>
+                <h4 className="text-3xl font-extrabold text-teal-400">
+                  <Counter value="500" suffix="+" />
+                </h4>
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Active Members</p>
               </div>
               <div>
-                <h4 className="text-3xl font-extrabold text-teal-400">20+</h4>
+                <h4 className="text-3xl font-extrabold text-teal-400">
+                  <Counter value="20" suffix="+" />
+                </h4>
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Workshops & Events</p>
               </div>
               <div>
-                <h4 className="text-3xl font-extrabold text-teal-400">10+</h4>
+                <h4 className="text-3xl font-extrabold text-teal-400">
+                  <Counter value="10" suffix="+" />
+                </h4>
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Projects Built</p>
               </div>
             </div>
@@ -131,14 +216,9 @@ export default function About() {
         <FadeInSection>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, idx) => (
-              <motion.div
+              <TiltCard
                 key={idx}
-                whileHover={{
-                  y: -5,
-                  boxShadow: "0px 12px 24px -10px rgba(45, 212, 191, 0.2)",
-                  borderColor: "rgba(45, 212, 191, 0.4)",
-                }}
-                className="flex flex-col p-6 rounded-2xl border border-gray-800 bg-[#0F1A24]/40 backdrop-blur-sm transition-all duration-300 cursor-pointer text-left group"
+                className="flex flex-col p-6 rounded-2xl border border-gray-800 bg-[#0F1A24]/40 backdrop-blur-sm transition-all duration-300 cursor-pointer text-left group hover:border-teal-500/30 hover:shadow-[0px_12px_24px_-10px_rgba(45,212,191,0.2)]"
               >
                 <div className="p-3 bg-teal-500/10 rounded-xl w-fit mb-4 border border-teal-500/20 group-hover:bg-teal-500/20 group-hover:border-teal-400/30 transition-all duration-300">
                   {feature.icon}
@@ -149,7 +229,7 @@ export default function About() {
                 <p className="text-sm text-gray-400 font-light leading-relaxed">
                   {feature.desc}
                 </p>
-              </motion.div>
+              </TiltCard>
             ))}
           </div>
         </FadeInSection>

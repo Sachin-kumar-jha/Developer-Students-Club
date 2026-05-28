@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRegistrations, clearRegistrationError, updatePaymentStatus } from "../redux/slices/registrationSlice";
+import { setUser } from "../redux/slices/authSlice";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus } from "lucide-react";
+import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2 } from "lucide-react";
 import axios from "axios";
 
 export default function ProfilePage() {
@@ -19,6 +20,104 @@ export default function ProfilePage() {
   const [loadingTeam, setLoadingTeam] = useState(false);
   const [showAddEditModal, setShowAddEditModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null); // null for add mode, member object for edit mode
+  
+  // Profile editing state
+  const [profileData, setProfileData] = useState(null);
+  const [teamMemberData, setTeamMemberData] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+
+  // Edit Profile Form States
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    email: "",
+    rollno: "",
+    branch: "",
+    year: "",
+    linkedinUrl: "",
+  });
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const fetchProfile = async () => {
+    setLoadingProfile(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/profile`, {
+        withCredentials: true,
+      });
+      setProfileData(response.data?.user);
+      setTeamMemberData(response.data?.teamMember);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to load profile details");
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleOpenEditProfile = () => {
+    if (!profileData) return;
+    setProfileForm({
+      name: profileData.name || "",
+      email: profileData.email || "",
+      rollno: profileData.rollno || "",
+      branch: profileData.branch || "",
+      year: profileData.year || "",
+      linkedinUrl: teamMemberData?.linkedinUrl || "",
+    });
+    setProfileImageFile(null);
+    setProfileImagePreview(teamMemberData?.profileImage || "");
+    setShowEditProfileModal(true);
+  };
+
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImageFile(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setIsSavingProfile(true);
+
+    const payload = new FormData();
+    Object.entries(profileForm).forEach(([key, value]) => {
+      payload.append(key, value);
+    });
+
+    if (profileImageFile) {
+      payload.append("profileImage", profileImageFile);
+    }
+
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/users/profile`,
+        payload,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      toast.success(res.data?.message || "Profile updated successfully");
+      setProfileData(res.data?.user);
+      setTeamMemberData(res.data?.teamMember);
+      
+      // Update Redux user
+      dispatch(setUser({
+        ...user,
+        name: res.data.user.name,
+        email: res.data.user.email,
+      }));
+
+      setShowEditProfileModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save profile");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
   
   // Modal form states
   const [modalForm, setModalForm] = useState({
@@ -158,6 +257,12 @@ export default function ProfilePage() {
   }, [dispatch, user, userId]);
 
   useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (error) {
       toast.error(error);
       dispatch(clearRegistrationError());
@@ -237,80 +342,174 @@ export default function ProfilePage() {
           <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-teal-400/50"></div>
 
           <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-6 flex items-center gap-2">
-              <User className="w-6 h-6" />
-              User Information
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <motion.div
-                whileHover={{ x: 5 }}
-                className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-teal-400 flex items-center gap-2">
+                <User className="w-6 h-6" />
+                User Information
+              </h2>
+              <button
+                onClick={handleOpenEditProfile}
+                className="px-4 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-400 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
               >
-                <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center">
-                  <User className="w-6 h-6 text-teal-400" />
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-mono">Name</p>
-                  <p className="text-white font-semibold">{user.name}</p>
-                </div>
-              </motion.div>
+                Edit Profile
+              </button>
+            </div>
 
-              <motion.div
-                whileHover={{ x: 5 }}
-                className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
-              >
-                <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-cyan-400" />
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              {teamMemberData && (
+                <div className="flex flex-col items-center gap-3 flex-shrink-0 mx-auto md:mx-0">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-teal-400/50 bg-gray-900 shadow-lg">
+                    <img
+                      src={teamMemberData.profileImage}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {teamMemberData.role && (
+                    <span className="px-3 py-1 bg-teal-500/20 border border-teal-500/30 rounded-full text-teal-400 text-xs font-mono font-semibold">
+                      {teamMemberData.role}
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-mono">Email</p>
-                  <p className="text-white font-semibold break-all">{user.email}</p>
-                </div>
-              </motion.div>
+              )}
 
-              <motion.div
-                whileHover={{ x: 5 }}
-                className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
-              >
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-purple-400" />
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-mono">Role</p>
-                  <p className="text-white font-semibold uppercase">{user.role}</p>
-                </div>
-              </motion.div>
-
-              {user.role === "admin" && (
+              <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6">
                 <motion.div
                   whileHover={{ x: 5 }}
                   className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
                 >
-                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-green-400" />
+                  <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center">
+                    <User className="w-6 h-6 text-teal-400" />
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-mono">Total Registrations</p>
-                    <p className="text-white font-semibold text-2xl">{registrations.length}</p>
+                    <p className="text-gray-500 text-sm font-mono">Name</p>
+                    <p className="text-white font-semibold">{profileData?.name || user.name}</p>
                   </div>
                 </motion.div>
-              )}
 
-              {user.role === "admin" && (
-                <Link
-                  to="/team-signup"
-                  className="flex items-center gap-4 p-4 bg-teal-500/10 rounded-lg border border-teal-500/30 hover:border-teal-300 transition"
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
                 >
-                  <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center">
-                    <UserPlus className="w-6 h-6 text-teal-400" />
+                  <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-cyan-400" />
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-mono">Team Invite Link</p>
-                    <p className="text-white font-semibold">Open Team Member Signup</p>
+                    <p className="text-gray-500 text-sm font-mono">Email</p>
+                    <p className="text-white font-semibold break-all">{profileData?.email || user.email}</p>
                   </div>
-                </Link>
-              )}
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+                >
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm font-mono">Role</p>
+                    <p className="text-white font-semibold uppercase">{profileData?.role || user.role}</p>
+                  </div>
+                </motion.div>
+
+                {profileData?.rollno && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+                  >
+                    <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                      <GraduationCap className="w-6 h-6 text-yellow-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm font-mono">Roll Number</p>
+                      <p className="text-white font-semibold">{profileData.rollno}</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {profileData?.branch && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+                  >
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                      <Code2 className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm font-mono">Branch</p>
+                      <p className="text-white font-semibold">{profileData.branch}</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {profileData?.year && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+                  >
+                    <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-pink-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm font-mono">Year</p>
+                      <p className="text-white font-semibold">{profileData.year}</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {teamMemberData?.linkedinUrl && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+                  >
+                    <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                      <Link2 className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm font-mono">LinkedIn Profile</p>
+                      <a
+                        href={teamMemberData.linkedinUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-teal-400 font-semibold hover:underline truncate block max-w-[200px]"
+                      >
+                        {teamMemberData.linkedinUrl}
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
+
+                {user.role === "admin" && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-lg border border-teal-500/20"
+                  >
+                    <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <Users className="w-6 h-6 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm font-mono">Total Registrations</p>
+                      <p className="text-white font-semibold text-2xl">{registrations.length}</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {user.role === "admin" && (
+                  <Link
+                    to="/team-signup"
+                    className="flex items-center gap-4 p-4 bg-teal-500/10 rounded-lg border border-teal-500/30 hover:border-teal-300 transition"
+                  >
+                    <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center">
+                      <UserPlus className="w-6 h-6 text-teal-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm font-mono">Team Invite Link</p>
+                      <p className="text-white font-semibold">Open Team Member Signup</p>
+                    </div>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -741,6 +940,145 @@ export default function ProfilePage() {
                   className="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-black font-bold rounded transition disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center gap-2"
                 >
                   {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#0F1A24] border border-gray-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto"
+          >
+            <h3 className="text-2xl font-bold text-teal-400 mb-6">
+              Edit Profile
+            </h3>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              {/* Profile Image Field (Only for Team Members) */}
+              {teamMemberData && (
+                <div className="flex flex-col items-center gap-2 mb-4">
+                  {profileImagePreview ? (
+                    <img
+                      src={profileImagePreview}
+                      alt="Preview"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-teal-400"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-teal-400/10 border-2 border-dashed border-teal-400/40 flex items-center justify-center">
+                      <User className="w-8 h-8 text-teal-400" />
+                    </div>
+                  )}
+                  <label className="text-xs bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 border border-teal-500/30 px-3 py-1.5 rounded cursor-pointer transition font-mono">
+                    Select New Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfileImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-mono text-gray-400 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-mono text-gray-400 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={profileForm.email}
+                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
+                />
+              </div>
+
+              {/* Roll Number */}
+              <div>
+                <label className="block text-xs font-mono text-gray-400 mb-1">Roll Number</label>
+                <input
+                  type="text"
+                  required
+                  value={profileForm.rollno}
+                  onChange={(e) => setProfileForm({ ...profileForm, rollno: e.target.value })}
+                  className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Branch */}
+                <div>
+                  <label className="block text-xs font-mono text-gray-400 mb-1">Branch</label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.branch}
+                    onChange={(e) => setProfileForm({ ...profileForm, branch: e.target.value })}
+                    className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
+                  />
+                </div>
+
+                {/* Year */}
+                <div>
+                  <label className="block text-xs font-mono text-gray-400 mb-1">Year</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    max="4"
+                    value={profileForm.year}
+                    onChange={(e) => setProfileForm({ ...profileForm, year: e.target.value })}
+                    className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* LinkedIn URL (Only for Team Members) */}
+              {teamMemberData && (
+                <div>
+                  <label className="block text-xs font-mono text-gray-400 mb-1">LinkedIn Profile URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://linkedin.com/in/..."
+                    value={profileForm.linkedinUrl}
+                    onChange={(e) => setProfileForm({ ...profileForm, linkedinUrl: e.target.value })}
+                    className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
+                  />
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-750">
+                <button
+                  type="button"
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="px-4 py-2 border border-gray-600 hover:border-gray-500 rounded text-gray-300 font-bold transition text-sm cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-black font-bold rounded transition disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center gap-2 cursor-pointer"
+                >
+                  {isSavingProfile ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>
