@@ -636,13 +636,13 @@ export default function ProfilePage() {
                                 <>
                                   <button
                                     onClick={() => handlePaymentStatus(r._id, "approved")}
-                                    className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs"
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs cursor-pointer text-white font-semibold"
                                   >
                                     Approve
                                   </button>
                                   <button
                                     onClick={() => handlePaymentStatus(r._id, "rejected")}
-                                    className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs"
+                                    className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs cursor-pointer text-white font-semibold"
                                   >
                                     Reject
                                   </button>
@@ -662,8 +662,16 @@ export default function ProfilePage() {
                           <div>
                             <p className="text-teal-400 font-bold text-lg mb-2">{r.eventId?.title}</p>
                             <p className="text-gray-500 text-sm mb-2">
-                              Amount: Rs. {r.amount || r.eventId?.fee || 0} | Payment: {r.paymentStatus || "free"}
+                              Amount: Rs. {r.amount || r.eventId?.fee || 0} | Payment: <span className={`font-semibold capitalize ${
+                                r.paymentStatus === 'approved' ? 'text-green-400' : r.paymentStatus === 'pending' ? 'text-yellow-400' : r.paymentStatus === 'rejected' ? 'text-red-400' : 'text-gray-400'
+                              }`}>{r.paymentStatus || "free"}</span>
                             </p>
+                            {r.razorpayPaymentId && (
+                              <div className="mt-2 mb-3 flex flex-col gap-1 text-[10px] font-mono text-gray-400 bg-teal-950/15 border border-teal-500/20 rounded-lg p-2.5 max-w-xs">
+                                <div>Order: <span className="text-gray-300 font-semibold">{r.razorpayOrderId}</span></div>
+                                <div>Payment: <span className="text-gray-300 font-semibold">{r.razorpayPaymentId}</span></div>
+                              </div>
+                            )}
                             <div className="flex items-center gap-2 text-gray-400 text-sm">
                               <Calendar className="w-4 h-4" />
                               <span>

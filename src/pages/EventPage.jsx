@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEvents, clearMessages } from "../redux/slices/eventSlice.js";
+import { fetchRegistrations } from "../redux/slices/registrationSlice.js";
 import EventPageSkeleton from "../components/Skeleton/EventPageSkeleton.jsx";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -16,13 +17,17 @@ export default function EventPage() {
     (state) => state.events
   );
   const { user } = useSelector((state) => state.auth);
+  const { registrations } = useSelector((state) => state.registrations);
 
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
 
-  // Fetch all events
+  // Fetch all events and user registrations
   useEffect(() => {
     dispatch(fetchEvents());
-  }, [dispatch]);
+    if (user) {
+      dispatch(fetchRegistrations({ userId: user.id || user._id, role: user.role }));
+    }
+  }, [dispatch, user]);
 
   // Toast for success/error messages
   useEffect(() => {

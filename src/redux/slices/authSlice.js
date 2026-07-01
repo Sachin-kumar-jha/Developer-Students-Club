@@ -118,6 +118,9 @@ const authSlice = createSlice({
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Logout failed";
+        state.user = null;
+        state.token = null;
+        localStorage.removeItem("user");
       });
   },
 });

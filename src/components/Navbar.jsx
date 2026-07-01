@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../assets/image.png";
 import AuthModal from "./AuthModal.jsx";
@@ -16,16 +16,19 @@ export default function Navbar() {
   const [isMobile, setIsMobile] = useState(false);
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  
+  const navigate = useNavigate();
+
   const closeMenu = () => setIsOpen(false);
 
   const handleMobileLogout = async () => {
     try {
       const res = await dispatch(logoutUser()).unwrap();
       toast.success(res?.message || "Logged out successfully");
-      closeMenu();
     } catch (err) {
-      toast.error("Logout failed");
+      toast.error(err || "Logout failed");
+    } finally {
+      closeMenu();
+      navigate("/");
     }
   };
 
@@ -34,7 +37,7 @@ export default function Navbar() {
     const initialScroll = window.scrollY > 100;
     setIsScrolled(initialScroll);
     setIsMobile(window.innerWidth < 768);
-    
+
     // Disable initial load flag after a brief moment
     setTimeout(() => {
       setIsInitialLoad(false);
@@ -54,7 +57,7 @@ export default function Navbar() {
 
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
-    
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
@@ -270,15 +273,15 @@ export default function Navbar() {
                           <p className="text-xs text-gray-500">Team Member</p>
                         </div>
                       </div>
-                      <Link 
-                        to={`/profile/${user.id}`} 
-                        onClick={closeMenu} 
+                      <Link
+                        to={`/profile/${user.id}`}
+                        onClick={closeMenu}
                         className="text-gray-300 hover:text-teal-400 text-base"
                       >
                         Profile
                       </Link>
-                      <button 
-                        onClick={handleMobileLogout} 
+                      <button
+                        onClick={handleMobileLogout}
                         className="text-gray-300 hover:text-red-400 text-base text-left w-full cursor-pointer bg-transparent border-0 p-0 outline-none"
                       >
                         Logout
