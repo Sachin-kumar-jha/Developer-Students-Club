@@ -58,6 +58,43 @@ export const registerForPaidEvent = createAsyncThunk(
   }
 );
 
+export const createRazorpayOrder = createAsyncThunk(
+  "events/createRazorpayOrder",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/registration/create-order/${id}`,
+        {},
+        { withCredentials: true }
+      );
+      return response.data; // contains order and razorpayKeyId
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || error.response?.data?.message || "Failed to initiate payment order"
+      );
+    }
+  }
+);
+
+export const verifyRazorpayPayment = createAsyncThunk(
+  "events/verifyRazorpayPayment",
+  async ({ id, razorpay_order_id, razorpay_payment_id, razorpay_signature }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/registration/verify-payment/${id}`,
+        { razorpay_order_id, razorpay_payment_id, razorpay_signature },
+        { withCredentials: true }
+      );
+      return response.data; // contains registration details and success message
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Payment verification failed"
+      );
+    }
+  }
+);
+
+
 const eventSlice = createSlice({
   name: "events",
   initialState: {
@@ -110,7 +147,32 @@ const eventSlice = createSlice({
       .addCase(registerForPaidEvent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });;
+      })
+      .addCase(createRazorpayOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(createRazorpayOrder.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(createRazorpayOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(verifyRazorpayPayment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(verifyRazorpayPayment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message;
+      })
+      .addCase(verifyRazorpayPayment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 

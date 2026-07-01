@@ -52,13 +52,13 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {showAuthModal && <AuthModal onClose={() => { setShowAuthModal(false); navigate("/")}} />}
-      
-      <motion.div 
+      {showAuthModal && <AuthModal onClose={() => { setShowAuthModal(false); navigate("/") }} />}
+
+      <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ 
-          opacity: isPreloading ? 0 : 1, 
-          scale: isPreloading ? 0.98 : 1 
+        animate={{
+          opacity: isPreloading ? 0 : 1,
+          scale: isPreloading ? 0.98 : 1
         }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="bg-[#0F1A24] text-white w-full min-h-screen select-none"
@@ -97,7 +97,7 @@ export default function App() {
             <Route
               path="/about"
               element={
-                  <AboutPage />
+                <AboutPage />
               }
             />
 
@@ -105,8 +105,8 @@ export default function App() {
             <Route
               path="/events"
               element={
-                <Suspense fallback={<SuspenseLoader/>}>
-                    <EventPage />
+                <Suspense fallback={<SuspenseLoader />}>
+                  <EventPage />
                 </Suspense>
               }
             />
@@ -142,13 +142,13 @@ export default function App() {
             <Route
               path="/team"
               element={
-                  <TeamPage />
+                <TeamPage />
               }
             />
             <Route
               path="/team-signup"
               element={
-                  <TeamSignupPage />
+                <TeamSignupPage />
               }
             />
 
@@ -157,17 +157,17 @@ export default function App() {
               path="/gallery"
               element={
                 <Suspense fallback={<SuspenseLoader />}>
-                  
-                    <GalleryPage />
-                  
+
+                  <GalleryPage />
+
                 </Suspense>
               }
             />
             <Route
               path="/gallery/highlights/:eventId"
               element={
-                <Suspense fallback={<SuspenseLoader/>}>
-                    <EventHighlightsPage />
+                <Suspense fallback={<SuspenseLoader />}>
+                  <EventHighlightsPage />
                 </Suspense>
               }
             />
@@ -176,7 +176,7 @@ export default function App() {
             <Route
               path="/contact"
               element={
-                  <Contact />
+                <Contact />
               }
             />
           </Routes>

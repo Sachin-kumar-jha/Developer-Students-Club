@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { clearMessages, registerForEvent, registerForPaidEvent } from "../redux/slices/eventSlice.js";
+import { clearMessages, registerForEvent, createRazorpayOrder, verifyRazorpayPayment } from "../redux/slices/eventSlice.js";
+import { fetchRegistrations } from "../redux/slices/registrationSlice.js";
 import axios from "axios";
 import { useState } from "react";
 import AuthModal from "../components/AuthModal.jsx";
@@ -12,6 +13,14 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.events);
   const { user } = useSelector((state) => state.auth);
+  const { registrations } = useSelector((state) => state.registrations);
+
+  const isRegistered = registrations?.some(
+    (r) => (r.eventId?._id || r.eventId) === event._id
+  );
+  const myRegistration = registrations?.find(
+    (r) => (r.eventId?._id || r.eventId) === event._id
+  );
 
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -34,6 +43,10 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
 
     if (registerForEvent.fulfilled.match(result)) {
       toast.success(result.payload.message);
+      if (user) {
+        dispatch(fetchRegistrations({ userId: user.id || user._id, role: user.role }));
+      }
+      if (onRefresh) onRefresh();
     } else {
       toast.error(result.payload || "Failed to register for event");
     }
@@ -42,24 +55,68 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
   const handlePaidRegister = async (e) => {
     e.preventDefault();
 
-    if (!paymentScreenshot) {
-      toast.error("Please upload payment screenshot.");
+    dispatch(clearMessages());
+    
+    // 1. Create Razorpay order on backend
+    const orderResult = await dispatch(createRazorpayOrder(paymentEvent._id));
+    
+    if (!createRazorpayOrder.fulfilled.match(orderResult)) {
+      toast.error(orderResult.payload || "Failed to initiate payment");
       return;
     }
 
-    dispatch(clearMessages());
-    const result = await dispatch(
-      registerForPaidEvent({ id: paymentEvent._id, paymentScreenshot })
-    );
+    const { order, razorpayKeyId } = orderResult.payload;
 
-    if (registerForPaidEvent.fulfilled.match(result)) {
-      toast.success(result.payload.message);
-      setPaymentEvent(null);
-      setPaymentScreenshot(null);
-    } else {
-      toast.error(result.payload || "Failed to submit paid registration");
-    }
+    // 2. Configure Razorpay options
+    const options = {
+      key: razorpayKeyId,
+      amount: order.amount,
+      currency: order.currency,
+      name: "Developer Student Club",
+      description: `Registration fee for ${paymentEvent.title}`,
+      image: "/image.png",
+      order_id: order.id,
+      handler: async function (response) {
+        // Success callback
+        const verifyResult = await dispatch(
+          verifyRazorpayPayment({
+            id: paymentEvent._id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          })
+        );
+
+        if (verifyRazorpayPayment.fulfilled.match(verifyResult)) {
+          toast.success(verifyResult.payload.message || "Payment verified successfully!");
+          setPaymentEvent(null);
+          if (user) {
+            dispatch(fetchRegistrations({ userId: user.id || user._id, role: user.role }));
+          }
+          if (onRefresh) onRefresh();
+        } else {
+          toast.error(verifyResult.payload || "Payment verification failed");
+        }
+      },
+      prefill: {
+        name: user?.name || "",
+        email: user?.email || "",
+      },
+      theme: {
+        color: "#14b8a6", // Teal color matching the site theme
+      },
+      modal: {
+        ondismiss: function () {
+          toast.info("Payment window closed");
+        }
+      }
+    };
+
+    // 3. Open Razorpay checkout modal
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
+
 
   const handleResources = (eventId) => {
     if (!user) {
@@ -164,17 +221,25 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
             <div className="flex flex-wrap gap-3">
               {!isAdmin && !isPast && (
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-bold font-mono uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-all duration-300"
-                  disabled={loading}
+                  whileHover={isRegistered ? {} : { scale: 1.02 }}
+                  whileTap={isRegistered ? {} : { scale: 0.98 }}
+                  className={`px-6 py-3 font-bold font-mono uppercase tracking-wider rounded-xl transition-all duration-300 ${
+                    isRegistered
+                      ? "bg-gray-800 text-gray-500 border border-gray-700/60 cursor-not-allowed"
+                      : "bg-gradient-to-r from-teal-500 to-cyan-500 text-black hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] cursor-pointer"
+                  }`}
+                  disabled={loading || isRegistered}
                   onClick={() => handleRegister(event._id)}
                 >
                   {loading
                     ? "Registering..."
-                    : (event.fee || 0) > 0
-                      ? `Pay & Register`
-                      : "Register Now ➔"}
+                    : isRegistered
+                      ? myRegistration?.paymentStatus === "pending"
+                        ? "Pending Approval"
+                        : "Registered"
+                      : (event.fee || 0) > 0
+                        ? "Pay & Register"
+                        : "Register Now ➔"}
                 </motion.button>
               )}
 
@@ -232,66 +297,56 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
       </motion.div>
 
       {paymentEvent && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-          <form
-            onSubmit={handlePaidRegister}
-            className="w-full max-w-md bg-[#162330] border border-gray-700 rounded-xl p-6 shadow-xl"
-          >
-            <h3 className="text-xl font-semibold mb-2">Payment Verification</h3>
-            <p className="text-gray-300 mb-4">{paymentEvent.title}</p>
-            <div className="bg-[#0F1A24] rounded-lg p-4 mb-4 text-sm text-gray-300">
-              <p className="mb-1">
-                Amount: <span className="text-teal-300 font-semibold">Rs. {paymentEvent.fee}</span>
-              </p>
-              {paymentEvent.upiId && (
-                <>
-                  <p className="mb-3">
-                    UPI ID: <span className="text-white font-semibold">{paymentEvent.upiId}</span>
-                  </p>
-                  {/* Dynamic UPI QR Code */}
-                  <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl w-36 h-36 mx-auto mb-3 border border-teal-400">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-                        `upi://pay?pa=${paymentEvent.upiId}&pn=${encodeURIComponent(paymentEvent.title)}&am=${paymentEvent.fee}&cu=INR`
-                      )}`}
-                      alt="UPI QR Code"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <p className="text-center text-[10px] text-gray-400 font-mono mb-2">
-                    Scan using GPay, PhonePe, or Paytm
-                  </p>
-                </>
-              )}
-              <p className="mt-2 text-center text-xs">Pay using UPI / Scan QR, then upload your payment screenshot.</p>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center px-4 animate-fade-in">
+          <div className="w-full max-w-md bg-[#162330]/90 border border-teal-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+            {/* Design Accents */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl"></div>
+            
+            <h3 className="text-2xl font-bold mb-1 text-white">Event Registration</h3>
+            <p className="text-teal-400 font-mono text-xs uppercase tracking-wider mb-6">&gt; Secure Payment Gateway</p>
+            
+            <div className="bg-[#0F1A24]/60 border border-gray-800 rounded-2xl p-5 mb-6 text-sm text-gray-300">
+              <div className="mb-4">
+                <span className="text-gray-500 block text-xs font-mono mb-1">Event Name</span>
+                <span className="text-white font-semibold text-lg">{paymentEvent.title}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-500 block text-xs font-mono mb-1">Registration Fee</span>
+                  <span className="text-teal-300 font-extrabold text-xl">Rs. {paymentEvent.fee}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block text-xs font-mono mb-1">Currency</span>
+                  <span className="text-white font-semibold text-base">INR</span>
+                </div>
+              </div>
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setPaymentScreenshot(e.target.files?.[0] || null)}
-              className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 mb-4"
-              required
-            />
-            <div className="flex gap-3">
+
+            <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setPaymentEvent(null);
-                  setPaymentScreenshot(null);
-                }}
-                className="flex-1 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600"
+                disabled={loading}
+                onClick={handlePaidRegister}
+                className="w-full py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-extrabold font-mono uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-all duration-300 text-center"
+              >
+                {loading ? "Processing..." : "Proceed to Pay"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentEvent(null)}
+                className="w-full py-3 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold hover:text-white transition duration-300 cursor-pointer text-center text-sm font-mono"
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 px-4 py-2 rounded-lg bg-teal-500 hover:bg-teal-400 text-black font-semibold disabled:opacity-60"
-              >
-                {loading ? "Submitting..." : "Submit"}
-              </button>
             </div>
-          </form>
+
+            <div className="mt-6 flex items-center justify-center gap-2 text-gray-500 text-[10px] font-mono">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span>Powered by Razorpay Secure Payments</span>
+            </div>
+          </div>
         </div>
       )}
     </>

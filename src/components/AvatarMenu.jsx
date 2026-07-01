@@ -18,13 +18,18 @@ export default function AvatarMenu({ user }) {
     navigate(`/profile/${user.id}`); // Redirect to profile page
   };
 
-  const handleLogoutClick =async () => {
-    setLoading(true);
-    const res= await dispatch(logoutUser()).unwrap();
-    setOpen(false);
-    setLoading(false);
-    navigate("/");
-    toast.success(`${res?.message}`);
+  const handleLogoutClick = async () => {
+    try {
+      setLoading(true);
+      const res = await dispatch(logoutUser()).unwrap();
+      toast.success(res?.message || "Logout successful");
+    } catch (err) {
+      toast.error(err || "Logout failed");
+    } finally {
+      setOpen(false);
+      setLoading(false);
+      navigate("/");
+    }
   };
     
 
