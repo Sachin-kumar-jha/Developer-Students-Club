@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRegistrations, clearRegistrationError, updatePaymentStatus } from "../redux/slices/registrationSlice";
+import { fetchAttendance, markAttendance, fetchMyAttendance, clearLastScanResult } from "../redux/slices/attendanceSlice";
+import { fetchEvents } from "../redux/slices/eventSlice";
 import { setUser } from "../redux/slices/authSlice";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
-import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2, QrCode, ScanLine, CheckCircle, XCircle, Download, Clock } from "lucide-react";
 import axios from "axios";
+import QRCode from "qrcode";
+import { Html5Qrcode } from "html5-qrcode";
+import { jsPDF } from "jspdf";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -14,8 +19,10 @@ export default function ProfilePage() {
   const { user } = useSelector((state) => state.auth);
 
   const { registrations, loading, error } = useSelector((state) => state.registrations);
+  const { memberRecords, ordinaryRecords, totalMembers, totalOrdinary, myRecords, myTotal, myUserType } = useSelector((state) => state.attendance);
+  const { events } = useSelector((state) => state.events);
 
-  const [activeTab, setActiveTab] = useState("registrations"); // "registrations" or "team"
+  const [activeTab, setActiveTab] = useState("registrations"); // "registrations" or "team" or "attendance"
   const [teamMembers, setTeamMembers] = useState([]);
   const [loadingTeam, setLoadingTeam] = useState(false);
   const [showAddEditModal, setShowAddEditModal] = useState(false);
@@ -39,6 +46,20 @@ export default function ProfilePage() {
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // QR Code state
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+
+  // Attendance state
+  const [scannerActive, setScannerActive] = useState(false);
+  const [attendanceType, setAttendanceType] = useState("meeting"); // "meeting" or "event"
+  const [selectedEventId, setSelectedEventId] = useState("");
+  const [attendanceFilter, setAttendanceFilter] = useState("all"); // "all", "member", "ordinary"
+  const [attendanceDateFilter, setAttendanceDateFilter] = useState(new Date().toISOString().split("T")[0]);
+  const [scanResult, setScanResult] = useState(null);
+  const scannerRef = useRef(null);
+  const html5QrCodeRef = useRef(null);
 
   const fetchProfile = async () => {
     setLoadingProfile(true);
@@ -280,6 +301,248 @@ export default function ProfilePage() {
     }
   };
 
+  // Generate QR code for the user
+  useEffect(() => {
+    if (user?.id) {
+      const qrData = `dsc-attendance::${user.id}`;
+      QRCode.toDataURL(qrData, {
+        width: 280,
+        margin: 2,
+        color: { dark: "#0f172a", light: "#ffffff" }, // High contrast dark slate on white
+        errorCorrectionLevel: "H", // High error correction — works even if QR is partially damaged
+      })
+        .then(setQrCodeDataUrl)
+        .catch((err) => console.error("QR generation failed:", err));
+    }
+  }, [user?.id]);
+
+  // Fetch events for admin attendance dropdown
+  useEffect(() => {
+    if (user?.role === "admin" && activeTab === "attendance") {
+      dispatch(fetchEvents());
+      dispatch(fetchAttendance({ type: attendanceFilter, date: attendanceDateFilter }));
+    }
+  }, [user, activeTab, attendanceFilter, attendanceDateFilter, dispatch]);
+
+  // Fetch user's own attendance
+  useEffect(() => {
+    if (user && user.role !== "admin") {
+      dispatch(fetchMyAttendance());
+    }
+  }, [user, dispatch]);
+
+  const isProcessingScanRef = useRef(false);
+
+  // QR Scanner functions
+  const startScanner = useCallback(async () => {
+    if (html5QrCodeRef.current) return;
+
+    try {
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      html5QrCodeRef.current = html5QrCode;
+      isProcessingScanRef.current = false;
+
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 30,            // High FPS for fast scanning
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          disableFlip: false,
+        },
+        async (decodedText) => {
+          if (isProcessingScanRef.current) return;
+
+          // Parse QR data
+          if (!decodedText.startsWith("dsc-attendance::")) {
+            isProcessingScanRef.current = true;
+            setScanResult({ success: false, message: "Invalid QR code — not a DSC attendance QR" });
+            setTimeout(() => {
+              isProcessingScanRef.current = false;
+              setScanResult(null);
+            }, 2500);
+            return;
+          }
+
+          isProcessingScanRef.current = true;
+          const scannedUserId = decodedText.replace("dsc-attendance::", "");
+
+          // Mark attendance
+          const payload = { userId: scannedUserId };
+          if (attendanceType === "event" && selectedEventId) {
+            payload.type = "event";
+            payload.eventId = selectedEventId;
+          } else {
+            payload.type = "meeting";
+          }
+
+          try {
+            const result = await dispatch(markAttendance(payload)).unwrap();
+            setScanResult({ success: true, message: result.message, user: result.user });
+            toast.success(result.message);
+            // Refresh attendance list
+            dispatch(fetchAttendance({ type: attendanceFilter, date: attendanceDateFilter }));
+          } catch (err) {
+            setScanResult({ success: false, message: err });
+            toast.error(err);
+          } finally {
+            // Keep scanner open, wait 2.5s before allowing next scan
+            setTimeout(() => {
+              isProcessingScanRef.current = false;
+              setScanResult(null);
+            }, 2500);
+          }
+        },
+        () => {} // Ignore scan failures (camera noise)
+      );
+
+      setScannerActive(true);
+    } catch (err) {
+      console.error("Scanner start failed:", err);
+      toast.error("Camera access denied or scanner failed to start");
+      setScannerActive(false);
+    }
+  }, [attendanceType, selectedEventId, dispatch, attendanceFilter, attendanceDateFilter]);
+
+  const stopScanner = useCallback(async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+      } catch {}
+      html5QrCodeRef.current = null;
+    }
+    setScannerActive(false);
+  }, []);
+
+  // Cleanup scanner on unmount
+  useEffect(() => {
+    return () => {
+      if (html5QrCodeRef.current) {
+        try { html5QrCodeRef.current.stop(); } catch {}
+        html5QrCodeRef.current = null;
+      }
+    };
+  }, []);
+
+  const downloadQR = () => {
+    if (!qrCodeDataUrl) return;
+    const link = document.createElement("a");
+    link.download = `dsc-qr-${user?.name?.replace(/\s+/g, "_") || "code"}.png`;
+    link.href = qrCodeDataUrl;
+    link.click();
+  };
+
+  const downloadAllQRsPDF = async () => {
+    try {
+      setIsDownloadingPDF(true);
+      toast.info("Generating QR codes PDF, please wait...");
+      
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/all`, {
+        withCredentials: true,
+      });
+
+      if (!response.data?.success || !response.data?.users?.length) {
+        toast.error("No registered users found");
+        setIsDownloadingPDF(false);
+        return;
+      }
+
+      const usersList = response.data.users;
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const cardWidth = 90;
+      const cardHeight = 85;
+      const spacingX = 10;
+      const spacingY = 10;
+      const margin = 10;
+      const cardsPerPage = 6;
+
+      for (let index = 0; index < usersList.length; index++) {
+        const u = usersList[index];
+        const pageIndex = index % cardsPerPage;
+
+        if (index > 0 && pageIndex === 0) {
+          doc.addPage();
+        }
+
+        const row = Math.floor(pageIndex / 2);
+        const col = pageIndex % 2;
+        const x = margin + col * (cardWidth + spacingX);
+        const y = margin + row * (cardHeight + spacingY);
+
+        // Card Border
+        doc.setLineWidth(0.3);
+        doc.setDrawColor(20, 184, 166);
+        doc.rect(x, y, cardWidth, cardHeight);
+
+        // Header Background block
+        doc.setFillColor(15, 26, 36);
+        doc.rect(x + 0.1, y + 0.1, cardWidth - 0.2, 10, "F");
+
+        // Header Text
+        doc.setFontSize(9);
+        doc.setTextColor(20, 184, 166);
+        doc.setFont("helvetica", "bold");
+        doc.text("DEVELOPER STUDENTS CLUB", x + cardWidth / 2, y + 6.5, { align: "center" });
+
+        // Generate QR code for this user
+        const qrData = `dsc-attendance::${u._id}`;
+        const qrDataUrl = await QRCode.toDataURL(qrData, {
+          margin: 1,
+          width: 200,
+          color: { dark: "#0f172a", light: "#ffffff" }
+        });
+
+        // Draw QR code
+        doc.addImage(qrDataUrl, "PNG", x + (cardWidth - 42) / 2, y + 13, 42, 42);
+
+        // User Name
+        doc.setFontSize(10);
+        doc.setTextColor(15, 26, 36);
+        doc.setFont("helvetica", "bold");
+        const nameText = u.name || "N/A";
+        doc.text(nameText.toUpperCase(), x + cardWidth / 2, y + 62, { align: "center", maxWidth: cardWidth - 8 });
+
+        // Details (Roll, Branch, Year)
+        doc.setFontSize(8);
+        doc.setTextColor(70, 70, 70);
+        doc.setFont("helvetica", "normal");
+        const detailsText = `Roll: ${u.rollno || "N/A"} | ${u.branch || "N/A"}`;
+        doc.text(detailsText, x + cardWidth / 2, y + 68, { align: "center" });
+
+        // User Type
+        doc.setFontSize(8);
+        if (u.userType === "member") {
+          doc.setTextColor(20, 184, 166);
+          doc.setFont("helvetica", "bold");
+          doc.text("★ CORE MEMBER", x + cardWidth / 2, y + 74, { align: "center" });
+        } else {
+          doc.setTextColor(100, 100, 100);
+          doc.setFont("helvetica", "normal");
+          doc.text("PARTICIPANT", x + cardWidth / 2, y + 74, { align: "center" });
+        }
+        
+        // Footer small label
+        doc.setFontSize(6);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`ID: ${u._id}`, x + cardWidth / 2, y + 81, { align: "center" });
+      }
+
+      doc.save(`DSC_Users_QR_Codes_${new Date().toISOString().split("T")[0]}.pdf`);
+      toast.success("PDF generated and downloaded successfully!");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error(err.response?.data?.message || "Failed to generate PDF");
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  };
+
+
   if (!user) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -514,6 +777,63 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
+        {/* QR Code Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="bg-gradient-to-br from-[#0F1A24]/90 to-black/90 backdrop-blur-md rounded-2xl p-8 mb-8 border-2 border-teal-500/30 shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-teal-400/50"></div>
+          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-teal-400/50"></div>
+
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold text-teal-400 flex items-center gap-2 mb-6">
+              <QrCode className="w-6 h-6" />
+              Your Attendance QR Code
+            </h2>
+
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              {qrCodeDataUrl ? (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="p-4 bg-white rounded-2xl border border-teal-500/30 shadow-[0_0_30px_rgba(20,184,166,0.15)]">
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="Your QR Code"
+                      className="w-56 h-56 rounded-lg"
+                    />
+                  </div>
+                  <button
+                    onClick={downloadQR}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-400 rounded-lg text-sm font-bold transition cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download QR Code
+                  </button>
+                </div>
+              ) : (
+                <div className="w-56 h-56 rounded-lg bg-teal-500/5 border border-teal-500/20 flex items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+
+              <div className="flex-1 text-center md:text-left">
+                <p className="text-gray-400 text-sm font-mono mb-3">
+                  Admin is QR code ko scan karke aapki attendance mark karega.
+                </p>
+                <p className="text-gray-500 text-xs font-mono">
+                  Ye QR code aapki unique ID se linked hai — kisi ke saath share mat karo.
+                </p>
+                <div className="mt-4 px-4 py-2 bg-teal-500/10 border border-teal-500/20 rounded-lg inline-block">
+                  <p className="text-teal-400 text-xs font-mono font-bold">
+                    {profileData?.userType === "member" ? "🌟 CORE MEMBER" : "👤 REGISTERED USER"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Admin Navigation Tabs */}
         {user.role === "admin" && (
           <div className="flex gap-6 border-b border-teal-500/20 mb-8 pb-1">
@@ -539,6 +859,20 @@ export default function ProfilePage() {
             >
               MANAGE TEAM
               {activeTab === "team" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-400"
+                />
+              )}
+            </button>
+            <button
+              onClick={() => { stopScanner(); setActiveTab("attendance"); }}
+              className={`pb-3 px-2 font-bold font-mono tracking-wider transition relative text-sm ${
+                activeTab === "attendance" ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              ATTENDANCE
+              {activeTab === "attendance" && (
                 <motion.div
                   layoutId="activeTabIndicator"
                   className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-400"
@@ -810,6 +1144,327 @@ export default function ProfilePage() {
                   <Users className="w-10 h-10 text-teal-400" />
                 </div>
                 <p className="text-gray-400 text-lg font-mono">No team members registered yet.</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Admin Attendance Section */}
+        {activeTab === "attendance" && user.role === "admin" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* QR Scanner */}
+            <div className="bg-gradient-to-br from-[#0F1A24]/90 to-black/90 backdrop-blur-md rounded-2xl p-8 mb-8 border-2 border-teal-500/30 shadow-2xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <h2 className="text-2xl font-bold text-teal-400 flex items-center gap-2">
+                  <ScanLine className="w-6 h-6" />
+                  QR Code Scanner
+                </h2>
+                <button
+                  onClick={downloadAllQRsPDF}
+                  disabled={isDownloadingPDF}
+                  className="px-4 py-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-400 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  {isDownloadingPDF ? "Generating PDF..." : "Download All QRs PDF (Print Badges)"}
+                </button>
+              </div>
+
+              {/* Attendance Type Selection */}
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-400 text-sm font-mono">Type:</label>
+                  <select
+                    value={attendanceType}
+                    onChange={(e) => setAttendanceType(e.target.value)}
+                    className="px-3 py-2 bg-black/60 border border-teal-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-teal-400"
+                  >
+                    <option value="meeting">Meeting</option>
+                    <option value="event">Event</option>
+                  </select>
+                </div>
+
+                {attendanceType === "event" && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-gray-400 text-sm font-mono">Event:</label>
+                    <select
+                      value={selectedEventId}
+                      onChange={(e) => setSelectedEventId(e.target.value)}
+                      className="px-3 py-2 bg-black/60 border border-teal-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-teal-400 max-w-xs"
+                    >
+                      <option value="">Select Event</option>
+                      {events.map((evt) => (
+                        <option key={evt._id} value={evt._id}>{evt.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Scanner Area */}
+              <div className="flex flex-col items-center gap-4">
+                <div
+                  id="qr-reader"
+                  ref={scannerRef}
+                  className="w-full max-w-md rounded-xl overflow-hidden border-2 border-teal-500/30"
+                  style={{ minHeight: scannerActive ? '300px' : '0px' }}
+                ></div>
+
+                <div className="flex gap-3">
+                  {!scannerActive ? (
+                    <button
+                      onClick={startScanner}
+                      disabled={attendanceType === "event" && !selectedEventId}
+                      className="flex items-center gap-2 px-6 py-3 bg-teal-400 hover:bg-teal-300 text-black font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <ScanLine className="w-5 h-5" />
+                      Start Scanner
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopScanner}
+                      className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-400 text-white font-bold rounded-lg transition cursor-pointer"
+                    >
+                      <XCircle className="w-5 h-5" />
+                      Stop Scanner
+                    </button>
+                  )}
+                </div>
+
+                {attendanceType === "event" && !selectedEventId && (
+                  <p className="text-yellow-400 text-sm font-mono">⚠️ Pehle event select karo scanner start karne se pehle</p>
+                )}
+              </div>
+
+              {/* Scan Result */}
+              <AnimatePresence>
+                {scanResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`mt-6 p-4 rounded-xl border ${
+                      scanResult.success
+                        ? "bg-green-500/10 border-green-500/30"
+                        : "bg-red-500/10 border-red-500/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {scanResult.success ? (
+                        <CheckCircle className="w-8 h-8 text-green-400 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="w-8 h-8 text-red-400 flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className={`font-bold ${
+                          scanResult.success ? "text-green-400" : "text-red-400"
+                        }`}>
+                          {scanResult.message}
+                        </p>
+                        {scanResult.user && (
+                          <p className="text-gray-400 text-sm mt-1">
+                            {scanResult.user.name} | {scanResult.user.rollno} | {scanResult.user.userType === "member" ? "Core Member" : "Ordinary User"}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setScanResult(null); }}
+                      className="mt-3 text-xs text-gray-500 hover:text-gray-300 font-mono cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Attendance History */}
+            <div className="bg-gradient-to-br from-[#0F1A24]/90 to-black/90 backdrop-blur-md rounded-2xl p-8 border-2 border-teal-500/30 shadow-2xl">
+              <h2 className="text-2xl font-bold text-teal-400 flex items-center gap-2 mb-6">
+                <Clock className="w-6 h-6" />
+                Attendance Records
+              </h2>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-400 text-sm font-mono">Filter:</label>
+                  <select
+                    value={attendanceFilter}
+                    onChange={(e) => setAttendanceFilter(e.target.value)}
+                    className="px-3 py-2 bg-black/60 border border-teal-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-teal-400"
+                  >
+                    <option value="all">All Users</option>
+                    <option value="member">Core Members</option>
+                    <option value="ordinary">Ordinary Users</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-400 text-sm font-mono">Date:</label>
+                  <input
+                    type="date"
+                    value={attendanceDateFilter}
+                    onChange={(e) => setAttendanceDateFilter(e.target.value)}
+                    className="px-3 py-2 bg-black/60 border border-teal-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-teal-400"
+                  />
+                </div>
+                <div className="flex items-center gap-4 ml-auto">
+                  <span className="px-3 py-1 bg-teal-500/20 border border-teal-500/30 rounded-full text-teal-400 text-xs font-mono">
+                    Members: {totalMembers}
+                  </span>
+                  <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-mono">
+                    Ordinary: {totalOrdinary}
+                  </span>
+                </div>
+              </div>
+
+              {/* Member Records */}
+              {(attendanceFilter === "all" || attendanceFilter === "member") && memberRecords.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-teal-400 mb-3 flex items-center gap-2">
+                    <Users className="w-5 h-5" /> Core Members ({memberRecords.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {memberRecords.map((record, idx) => (
+                      <motion.div
+                        key={record._id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="flex items-center gap-4 p-3 bg-black/40 rounded-lg border border-teal-500/15 hover:border-teal-500/30 transition"
+                      >
+                        <div className="w-9 h-9 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold text-sm truncate">{record.userId?.name}</p>
+                          <p className="text-gray-500 text-xs">{record.userId?.rollno} · {record.userId?.branch}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-xs font-mono font-bold ${
+                          record.type === "meeting" 
+                            ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" 
+                            : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                        }`}>
+                          {record.type}
+                        </span>
+                        {record.eventId && (
+                          <span className="text-gray-400 text-xs truncate max-w-[120px]">{record.eventId?.title}</span>
+                        )}
+                        <span className="text-gray-600 text-xs font-mono">
+                          {new Date(record.markedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Ordinary Records */}
+              {(attendanceFilter === "all" || attendanceFilter === "ordinary") && ordinaryRecords.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                    <User className="w-5 h-5" /> Ordinary Users ({ordinaryRecords.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {ordinaryRecords.map((record, idx) => (
+                      <motion.div
+                        key={record._id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="flex items-center gap-4 p-3 bg-black/40 rounded-lg border border-cyan-500/15 hover:border-cyan-500/30 transition"
+                      >
+                        <div className="w-9 h-9 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-cyan-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold text-sm truncate">{record.userId?.name}</p>
+                          <p className="text-gray-500 text-xs">{record.userId?.rollno} · {record.userId?.branch}</p>
+                        </div>
+                        <span className="px-2 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-xs font-mono font-bold">event</span>
+                        <span className="text-gray-400 text-xs truncate max-w-[120px]">{record.eventId?.title}</span>
+                        <span className="text-gray-600 text-xs font-mono">
+                          {new Date(record.markedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {memberRecords.length === 0 && ordinaryRecords.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-teal-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-8 h-8 text-teal-400" />
+                  </div>
+                  <p className="text-gray-400 font-mono">No attendance records found for this date.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* User Attendance History (non-admin) */}
+        {user.role !== "admin" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="bg-gradient-to-br from-[#0F1A24]/90 to-black/90 backdrop-blur-md rounded-2xl p-8 mt-8 border-2 border-teal-500/30 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-teal-400 flex items-center gap-2">
+                <Clock className="w-6 h-6" />
+                My Attendance ({myTotal})
+              </h2>
+              {myUserType && (
+                <span className="px-3 py-1 bg-teal-500/20 border border-teal-500/30 rounded-full text-teal-400 text-xs font-mono font-bold">
+                  {myUserType === "member" ? "🌟 Core Member" : "👤 Ordinary"}
+                </span>
+              )}
+            </div>
+
+            {myRecords.length > 0 ? (
+              <div className="space-y-2">
+                {myRecords.map((record, idx) => (
+                  <motion.div
+                    key={record._id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="flex items-center gap-4 p-3 bg-black/40 rounded-lg border border-teal-500/15 hover:border-teal-500/30 transition"
+                  >
+                    <div className="w-9 h-9 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-teal-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold text-sm">{record.date}</p>
+                      {record.eventId && (
+                        <p className="text-gray-500 text-xs">Event: {record.eventId?.title}</p>
+                      )}
+                    </div>
+                    {record.type && (
+                      <span className={`px-2 py-1 rounded text-xs font-mono font-bold ${
+                        record.type === "meeting" 
+                          ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" 
+                          : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                      }`}>
+                        {record.type}
+                      </span>
+                    )}
+                    <span className="text-gray-600 text-xs font-mono">
+                      {new Date(record.markedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 font-mono text-sm">Abhi tak koi attendance record nahi hai.</p>
               </div>
             )}
           </motion.div>
