@@ -15,6 +15,8 @@ import {
   Check,
   UserCheck,
   Edit3,
+  GraduationCap,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function ApplyModal({ position, onClose, onSuccess }) {
@@ -90,6 +92,20 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
       return;
     }
 
+    // Validate Academic Year Eligibility
+    if (position.eligibleYears && position.eligibleYears.length > 0 && position.eligibleYears.length < 4) {
+      const studentYear = Number(formData.year);
+      if (!position.eligibleYears.includes(studentYear)) {
+        const labels = position.eligibleYears
+          .slice()
+          .sort((a, b) => a - b)
+          .map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"} Year`)
+          .join(", ");
+        toast.error(`This position is only open for ${labels}. Your selected year is Year ${studentYear}.`);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const res = await axios.post(
@@ -137,6 +153,12 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-gray-800 text-gray-300 border border-gray-700">
                   {position.type || "Core Member"}
+                </span>
+                <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  {position.eligibleYears && position.eligibleYears.length > 0 && position.eligibleYears.length < 4
+                    ? `${position.eligibleYears.slice().sort((a, b) => a - b).map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"}`).join(", ")} Year Only`
+                    : "All Years"}
                 </span>
                 {position.isOpen ? (
                   <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -421,6 +443,20 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
                               <option value="4">4th Year</option>
                             </select>
                           </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Year Eligibility Notice if restricted */}
+                    {position.eligibleYears && position.eligibleYears.length > 0 && position.eligibleYears.length < 4 && formData.year && !position.eligibleYears.includes(Number(formData.year)) && (
+                      <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-start gap-2.5 shadow-sm">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+                        <div>
+                          <strong className="text-amber-200">Year Eligibility Notice:</strong> This position is specifically open for{" "}
+                          <span className="text-white font-bold">
+                            {position.eligibleYears.slice().sort((a, b) => a - b).map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"}`).join(", ")} Year
+                          </span>{" "}
+                          students. Your currently selected academic year is <strong>{formData.year}{formData.year == 1 ? "st" : formData.year == 2 ? "nd" : formData.year == 3 ? "rd" : "th"} Year</strong>.
                         </div>
                       </div>
                     )}

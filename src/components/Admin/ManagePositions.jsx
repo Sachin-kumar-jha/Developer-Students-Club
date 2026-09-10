@@ -19,6 +19,7 @@ import {
   FileText,
   X,
   MessageCircle,
+  GraduationCap,
 } from "lucide-react";
 
 const DOMAINS = [
@@ -36,6 +37,7 @@ const INITIAL_FORM = {
   type: "Core Member",
   deadline: "",
   whatsappLink: "",
+  eligibleYears: [1, 2, 3, 4],
   requirements: "",
   responsibilities: "",
   isOpen: true,
@@ -100,6 +102,7 @@ export default function ManagePositions() {
       type: pos.type || "Core Member",
       deadline: pos.deadline ? new Date(pos.deadline).toISOString().split("T")[0] : "",
       whatsappLink: pos.whatsappLink || "",
+      eligibleYears: Array.isArray(pos.eligibleYears) && pos.eligibleYears.length > 0 ? pos.eligibleYears : [1, 2, 3, 4],
       requirements: Array.isArray(pos.requirements) ? pos.requirements.join("\n") : "",
       responsibilities: Array.isArray(pos.responsibilities) ? pos.responsibilities.join("\n") : "",
       isOpen: pos.isOpen !== undefined ? pos.isOpen : true,
@@ -124,6 +127,7 @@ export default function ManagePositions() {
         type: formData.type,
         deadline: formData.deadline || null,
         whatsappLink: formData.whatsappLink ? formData.whatsappLink.trim() : "",
+        eligibleYears: formData.eligibleYears,
         isOpen: formData.isOpen,
         requirements: formData.requirements.split("\n").map((r) => r.trim()).filter(Boolean),
         responsibilities: formData.responsibilities.split("\n").map((r) => r.trim()).filter(Boolean),
@@ -386,6 +390,12 @@ export default function ManagePositions() {
                         WhatsApp Linked
                       </span>
                     )}
+                    <span className="flex items-center gap-1 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                      <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+                      {pos.eligibleYears && pos.eligibleYears.length > 0 && pos.eligibleYears.length < 4
+                        ? `${pos.eligibleYears.slice().sort((a, b) => a - b).map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"}`).join(", ")} Year`
+                        : "All Years"}
+                    </span>
                   </div>
 
                   {/* Responsibilities / Requirements summary pills */}
@@ -550,6 +560,73 @@ export default function ManagePositions() {
                   <span className="text-xs font-mono text-gray-300">
                     {formData.isOpen ? "Position is Open" : "Position is Closed"}
                   </span>
+                </div>
+
+                {/* Eligible Academic Year(s) Selector */}
+                <div className="md:col-span-2 p-4 rounded-xl bg-black/40 border border-teal-500/20 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono text-teal-400 uppercase flex items-center gap-1.5 font-bold">
+                      <GraduationCap className="w-4 h-4 text-teal-400" />
+                      Eligible Academic Year(s)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allSelected = (formData.eligibleYears || []).length === 4;
+                        setFormData({
+                          ...formData,
+                          eligibleYears: allSelected ? [] : [1, 2, 3, 4],
+                        });
+                      }}
+                      className="text-[11px] font-mono text-teal-400/80 hover:text-teal-300 underline cursor-pointer"
+                    >
+                      {(formData.eligibleYears || []).length === 4 ? "Clear All" : "Select All Years"}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-gray-400 font-mono">
+                    Choose which student years can apply. If none or all 4 are selected, the position is open to all students.
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                    {[
+                      { year: 1, label: "1st Year", sub: "Freshers" },
+                      { year: 2, label: "2nd Year", sub: "Sophomores" },
+                      { year: 3, label: "3rd Year", sub: "Pre-Final" },
+                      { year: 4, label: "4th Year", sub: "Final Year" },
+                    ].map(({ year, label, sub }) => {
+                      const isSelected = (formData.eligibleYears || []).includes(year);
+                      return (
+                        <button
+                          key={year}
+                          type="button"
+                          onClick={() => {
+                            const current = formData.eligibleYears || [];
+                            const exists = current.includes(year);
+                            const updated = exists
+                              ? current.filter((y) => y !== year)
+                              : [...current, year].sort((a, b) => a - b);
+                            setFormData({ ...formData, eligibleYears: updated });
+                          }}
+                          className={`p-2.5 rounded-lg border text-left transition flex items-center justify-between cursor-pointer ${
+                            isSelected
+                              ? "bg-teal-500/20 border-teal-400 text-white shadow-[0_0_12px_rgba(20,184,166,0.2)]"
+                              : "bg-gray-900/40 border-gray-800 text-gray-400 hover:border-gray-700 hover:text-gray-200"
+                          }`}
+                        >
+                          <div>
+                            <div className="text-xs font-bold font-mono text-white">{label}</div>
+                            <div className="text-[10px] text-gray-400">{sub}</div>
+                          </div>
+                          <div
+                            className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold ${
+                              isSelected ? "bg-teal-400 text-black" : "border border-gray-700"
+                            }`}
+                          >
+                            {isSelected ? "✓" : ""}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* WhatsApp Group Link */}
