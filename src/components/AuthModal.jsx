@@ -25,6 +25,7 @@ export default function AuthModal({ onClose, defaultIsLogin = true }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [gsiLoaded, setGsiLoaded] = useState(false);
 
   // Step 2 for Google Sign Up (asking for rollno, branch, year, set password)
   const [googleSignUpStep, setGoogleSignUpStep] = useState(false);
@@ -129,51 +130,69 @@ export default function AuthModal({ onClose, defaultIsLogin = true }) {
     }
   };
 
-  // Initialize Google Identity Services
-  useEffect(() => {
-    if (window.google?.accounts?.id) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCallback,
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-      } catch (err) {
-        console.warn("Google gsi init error:", err);
-      }
-    }
-  }, [isLogin]);
-
-  // Trigger Google Sign In Prompt
-  const handleGoogleClick = () => {
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback if prompt is suppressed: render temporary button click
-          const btn = document.getElementById("hidden-google-btn");
-          if (btn) btn.click();
-        }
+  // Initialize Google Identity Services & Render Official Button
+  const initGoogleGSI = () => {
+    if (!window.google?.accounts?.id || !googleBtnRef.current) return false;
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCallback,
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
-    } else {
-      toast.error("Google Sign-In is loading. Please check your internet connection.");
+
+      // Clear previous button content
+      googleBtnRef.current.innerHTML = "";
+
+      const parentWidth = googleBtnRef.current.parentElement?.offsetWidth || 340;
+      const targetWidth = Math.min(380, Math.max(260, parentWidth - 10));
+
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: isLogin ? "signin_with" : "signup_with",
+        shape: "rectangular",
+        logo_alignment: "left",
+        width: targetWidth,
+      });
+
+      setGsiLoaded(true);
+
+      // Attempt prompt as optional One-Tap on supported devices
+      try {
+        window.google.accounts.id.prompt(() => {});
+      } catch (e) {}
+
+      return true;
+    } catch (err) {
+      console.warn("Google GSI render error:", err);
+      return false;
     }
   };
 
-  // Render hidden Google standard button as fallback click target
   useEffect(() => {
-    if (window.google?.accounts?.id && googleBtnRef.current) {
-      try {
-        window.google.accounts.id.renderButton(googleBtnRef.current, {
-          theme: "filled_blue",
-          size: "large",
-          width: "100%",
-          text: isLogin ? "signin_with" : "signup_with",
-        });
-      } catch (err) {
-        // quiet
+    if (googleSignUpStep) return;
+
+    setGsiLoaded(false);
+
+    if (initGoogleGSI()) return;
+
+    // Retry polling until google script is ready
+    const interval = setInterval(() => {
+      if (initGoogleGSI()) {
+        clearInterval(interval);
       }
-    }
+    }, 150);
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+    }, 6000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, [isLogin, googleSignUpStep]);
 
   const handleChange = (e) => {
@@ -301,40 +320,26 @@ export default function AuthModal({ onClose, defaultIsLogin = true }) {
           </div>
         )}
 
-        {/* GOOGLE OAUTH BUTTON (Visible unless already in Step 2 of Google Sign Up) */}
+        {/* GOOGLE OAUTH BUTTON */}
         {!googleSignUpStep && (
           <div className="space-y-3 mb-5">
-            {/* Custom Styled Google Button */}
-            <button
-              type="button"
-              onClick={handleGoogleClick}
-              disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm transition shadow-md hover:shadow-lg disabled:opacity-60 cursor-pointer"
-            >
-              {/* Google multi-color SVG */}
-              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>{isLogin ? "Sign in with Google" : "Sign up with Google"}</span>
-            </button>
+            {/* Google Identity Services Official Rendered Button */}
+            <div className="w-full flex flex-col items-center justify-center min-h-[44px]">
+              <div
+                ref={googleBtnRef}
+                className={`w-full flex justify-center items-center ${
+                  !gsiLoaded ? "opacity-0 absolute -z-10 pointer-events-none" : ""
+                }`}
+                id="google-signin-btn"
+              />
 
-            {/* Hidden native Google button container for auto-render */}
-            <div ref={googleBtnRef} className="hidden" id="hidden-google-btn" />
+              {!gsiLoaded && (
+                <div className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm shadow-md animate-pulse">
+                  <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                  <span>Loading Google Sign-In...</span>
+                </div>
+              )}
+            </div>
 
             {/* Divider */}
             <div className="flex items-center gap-3 my-4">
