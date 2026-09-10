@@ -13,6 +13,7 @@ import {
   MessageCircle,
   Users,
   X,
+  GraduationCap,
 } from "lucide-react";
 import ApplyModal from "./ApplyModal";
 import AuthModal from "../AuthModal";
@@ -26,10 +27,19 @@ const DOMAINS = [
   "PR & Sponsorship",
 ];
 
+const YEAR_FILTERS = [
+  { id: "All", label: "All Years" },
+  { id: "1", label: "1st Year" },
+  { id: "2", label: "2nd Year" },
+  { id: "3", label: "3rd Year" },
+  { id: "4", label: "4th Year" },
+];
+
 export default function OpenPositionsSection() {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDomain, setSelectedDomain] = useState("All");
+  const [selectedYearFilter, setSelectedYearFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPosition, setSelectedPosition] = useState(null);
 
@@ -81,12 +91,18 @@ export default function OpenPositionsSection() {
       selectedDomain === "All" ||
       currentDomain.toLowerCase() === selectedDomain.toLowerCase();
 
+    const matchesYear =
+      selectedYearFilter === "All" ||
+      !pos.eligibleYears ||
+      pos.eligibleYears.length === 0 ||
+      pos.eligibleYears.includes(Number(selectedYearFilter));
+
     const matchesSearch =
       pos.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pos.requirements?.some((r) => r.toLowerCase().includes(searchQuery.toLowerCase())) ||
       pos.responsibilities?.some((r) => r.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchesDomain && matchesSearch;
+    return matchesDomain && matchesYear && matchesSearch;
   });
 
   const activeCount = positions.filter((p) => p.isOpen).length;
@@ -124,44 +140,67 @@ export default function OpenPositionsSection() {
           </p>
         </div>
 
-        {/* Filter & Search Bar */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[#162330]/80 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl border border-teal-500/20 shadow-lg">
-          {/* Domain Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-            <span className="text-xs font-mono text-gray-400 uppercase mr-1 pl-1">Domain:</span>
-            {DOMAINS.map((domain) => (
-              <button
-                key={domain}
-                onClick={() => setSelectedDomain(domain)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium tracking-wide whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  selectedDomain === domain
-                    ? "bg-gradient-to-r from-teal-400 to-cyan-400 text-black font-bold shadow-[0_0_15px_rgba(20,184,166,0.35)] scale-102"
-                    : "bg-black/40 text-gray-400 hover:text-white border border-gray-800 hover:border-gray-700"
-                }`}
-              >
-                {domain}
-              </button>
-            ))}
+        {/* Filter & Search Bar Container */}
+        <div className="space-y-2.5">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[#162330]/80 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl border border-teal-500/20 shadow-lg">
+            {/* Domain Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+              <span className="text-xs font-mono text-gray-400 uppercase mr-1 pl-1">Domain:</span>
+              {DOMAINS.map((domain) => (
+                <button
+                  key={domain}
+                  onClick={() => setSelectedDomain(domain)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium tracking-wide whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    selectedDomain === domain
+                      ? "bg-gradient-to-r from-teal-400 to-cyan-400 text-black font-bold shadow-[0_0_15px_rgba(20,184,166,0.35)] scale-102"
+                      : "bg-black/40 text-gray-400 hover:text-white border border-gray-800 hover:border-gray-700"
+                  }`}
+                >
+                  {domain}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative min-w-[220px]">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by role or skill..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-1.5 bg-black/50 border border-gray-800 rounded-xl text-xs font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-teal-400 transition"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Search Input */}
-          <div className="relative min-w-[220px]">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by role or skill..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-1.5 bg-black/50 border border-gray-800 rounded-xl text-xs font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-teal-400 transition"
-            />
-            {searchQuery && (
+          {/* Academic Year Eligibility Quick Filter */}
+          <div className="flex items-center gap-1.5 overflow-x-auto px-2 py-1 scrollbar-none">
+            <span className="text-xs font-mono text-teal-400 uppercase mr-1 flex items-center gap-1.5 font-bold">
+              <GraduationCap className="w-3.5 h-3.5 text-teal-400" />
+              Year:
+            </span>
+            {YEAR_FILTERS.map(({ id, label }) => (
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                key={id}
+                onClick={() => setSelectedYearFilter(id)}
+                className={`px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer whitespace-nowrap ${
+                  selectedYearFilter === id
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                    : "bg-black/40 text-gray-400 hover:text-gray-200 border border-gray-800/80"
+                }`}
               >
-                <X className="w-3.5 h-3.5" />
+                {label}
               </button>
-            )}
+            ))}
           </div>
         </div>
 
@@ -223,7 +262,7 @@ export default function OpenPositionsSection() {
                       {pos.title}
                     </h3>
 
-                    {/* Meta info: Role type & Deadline & WhatsApp */}
+                    {/* Meta info: Role type & Deadline & WhatsApp & Eligible Years */}
                     <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-gray-400">
                       <span className="bg-black/50 px-2 py-0.5 rounded border border-gray-800 text-gray-300">
                         {pos.type || "Core Member"}
@@ -245,6 +284,14 @@ export default function OpenPositionsSection() {
                           WhatsApp
                         </span>
                       )}
+                      <span className="flex items-center gap-1 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 text-[11px]">
+                        <GraduationCap className="w-3 h-3 text-cyan-400" />
+                        <span>
+                          {pos.eligibleYears && pos.eligibleYears.length > 0 && pos.eligibleYears.length < 4
+                            ? `${pos.eligibleYears.slice().sort((a, b) => a - b).map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"}`).join(", ")} Year`
+                            : "All Years"}
+                        </span>
+                      </span>
                     </div>
 
                     {/* Requirements / Responsibilities chips */}
