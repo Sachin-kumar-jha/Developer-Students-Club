@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import image from "../assets/club-map.jpg"
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const fallbackTeam = [
   { name: "Ethan Carter", role: "President", profileImage: image, year: "4" },
@@ -31,6 +32,7 @@ const getYearLabel = (year) => {
 };
 
 export default function TeamPage() {
+  const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState(fallbackTeam);
 
   useEffect(() => {
@@ -201,14 +203,14 @@ export default function TeamPage() {
           students to help us grow our community. Check out our open positions 
           or contact us to learn more about how you can get involved.
         </p>
-        <motion.a
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          href="#positions"
-          className="inline-block px-6 py-3 bg-teal-400 text-black rounded-lg font-semibold hover:bg-teal-300 transition"
+          onClick={() => navigate("/positions")}
+          className="inline-block px-6 py-3 bg-teal-400 text-black rounded-lg font-semibold hover:bg-teal-300 transition cursor-pointer shadow-[0_0_20px_rgba(20,184,166,0.3)]"
         >
           View Open Positions
-        </motion.a>
+        </motion.button>
       </motion.section>
     </div>
   );
