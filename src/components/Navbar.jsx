@@ -122,6 +122,9 @@ export default function Navbar() {
               <Link to="/team" className="hover:text-teal-400 transition">
                 Team
               </Link>
+              <Link to="/positions" className="hover:text-teal-400 transition">
+                Positions
+              </Link>
               <Link to="/gallery" className="hover:text-teal-400 transition">
                 Gallery
               </Link>
@@ -228,6 +231,15 @@ export default function Navbar() {
                 >
                   <Link onClick={closeMenu} to="/team" className="text-lg">
                     Team
+                  </Link>
+                </motion.div>
+                <motion.div
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link onClick={closeMenu} to="/positions" className="text-lg">
+                    Positions
                   </Link>
                 </motion.div>
                 <motion.div

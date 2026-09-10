@@ -12,6 +12,7 @@ import axios from "axios";
 import QRCode from "qrcode";
 import { Html5Qrcode } from "html5-qrcode";
 import { jsPDF } from "jspdf";
+import ManagePositions from "../components/Admin/ManagePositions";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -879,6 +880,20 @@ export default function ProfilePage() {
                 />
               )}
             </button>
+            <button
+              onClick={() => { stopScanner(); setActiveTab("positions"); }}
+              className={`pb-3 px-2 font-bold font-mono tracking-wider transition relative text-sm ${
+                activeTab === "positions" ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              POSITIONS
+              {activeTab === "positions" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-400"
+                />
+              )}
+            </button>
           </div>
         )}
 
@@ -1406,6 +1421,11 @@ export default function ProfilePage() {
               )}
             </div>
           </motion.div>
+        )}
+
+        {/* Manage Positions Section (Admin only) */}
+        {activeTab === "positions" && user.role === "admin" && (
+          <ManagePositions />
         )}
 
         {/* User Attendance History (non-admin) */}

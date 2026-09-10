@@ -12,6 +12,7 @@ import Footer from "./components/Footer";
 import AboutPage from "./pages/AboutPage";
 import TeamPage from "./pages/TeamPage";
 import TeamSignupPage from "./pages/TeamSignupPage";
+import PositionsPage from "./pages/PositionsPage";
 import AddEventPage from "./components/Event/AddEvent";
 import EventMediaUpload from "./components/Event/EventMediaUpload";
 import { SuspenseLoader } from "./components/Skeleton/SuspenseLoader";
@@ -149,6 +150,12 @@ export default function App() {
               path="/team-signup"
               element={
                 <TeamSignupPage />
+              }
+            />
+            <Route
+              path="/positions"
+              element={
+                <PositionsPage />
               }
             />
 
