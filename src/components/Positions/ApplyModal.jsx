@@ -19,15 +19,44 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+const ALL_ACADEMIC_YEARS = [
+  { value: "1", label: "1st Year" },
+  { value: "2", label: "2nd Year" },
+  { value: "3", label: "3rd Year" },
+  { value: "4", label: "4th Year" },
+];
+
 export default function ApplyModal({ position, onClose, onSuccess }) {
   const { user } = useSelector((state) => state.auth);
+
+  const hasRestrictedYears =
+    Array.isArray(position?.eligibleYears) &&
+    position.eligibleYears.length > 0 &&
+    position.eligibleYears.length < 4;
+
+  const availableYears = hasRestrictedYears
+    ? ALL_ACADEMIC_YEARS.filter((item) => position.eligibleYears.includes(Number(item.value)))
+    : ALL_ACADEMIC_YEARS;
+
+  const getInitialYear = () => {
+    if (hasRestrictedYears) {
+      if (position.eligibleYears.length === 1) {
+        return String(position.eligibleYears[0]);
+      }
+      if (user?.year && position.eligibleYears.includes(Number(user.year))) {
+        return String(user.year);
+      }
+      return "";
+    }
+    return user?.year ? String(user.year) : "";
+  };
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
     rollno: user?.rollno || "",
     branch: user?.branch || "",
-    year: user?.year || "",
+    year: getInitialYear(),
     phone: "",
     githubUrl: "",
     linkedinUrl: "",
@@ -41,6 +70,25 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
   const [whatsappLink, setWhatsappLink] = useState(position?.whatsappLink || "");
   const [isEditingAcademic, setIsEditingAcademic] = useState(false);
 
+  // Sync year whenever position changes
+  useEffect(() => {
+    if (hasRestrictedYears) {
+      if (position.eligibleYears.length === 1) {
+        setFormData((prev) => ({
+          ...prev,
+          year: String(position.eligibleYears[0]),
+        }));
+      } else {
+        setFormData((prev) => {
+          if (prev.year && !position.eligibleYears.includes(Number(prev.year))) {
+            return { ...prev, year: "" };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [position]);
+
   // Auto-fetch fresh profile details if missing in redux state
   useEffect(() => {
     const fetchFreshProfile = async () => {
@@ -51,14 +99,28 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
           });
           const u = res.data?.user;
           if (u) {
-            setFormData((prev) => ({
-              ...prev,
-              name: prev.name || u.name || "",
-              email: prev.email || u.email || "",
-              rollno: prev.rollno || u.rollno || "",
-              branch: prev.branch || u.branch || "",
-              year: prev.year || u.year || "",
-            }));
+            setFormData((prev) => {
+              let yearVal = prev.year;
+              if (!yearVal) {
+                if (hasRestrictedYears) {
+                  if (position.eligibleYears.length === 1) {
+                    yearVal = String(position.eligibleYears[0]);
+                  } else if (u.year && position.eligibleYears.includes(Number(u.year))) {
+                    yearVal = String(u.year);
+                  }
+                } else if (u.year) {
+                  yearVal = String(u.year);
+                }
+              }
+              return {
+                ...prev,
+                name: prev.name || u.name || "",
+                email: prev.email || u.email || "",
+                rollno: prev.rollno || u.rollno || "",
+                branch: prev.branch || u.branch || "",
+                year: yearVal || (hasRestrictedYears && position.eligibleYears.length === 1 ? String(position.eligibleYears[0]) : ""),
+              };
+            });
           }
         } catch (err) {
           // quiet fallback
@@ -67,7 +129,7 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
     };
 
     fetchFreshProfile();
-  }, [user]);
+  }, [user, position]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -436,11 +498,12 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
                               required
                               className="p-2.5 rounded-lg bg-black/60 border border-gray-800 text-white text-sm focus:border-teal-400 focus:outline-none transition"
                             >
-                              <option value="">Select Year</option>
-                              <option value="1">1st Year</option>
-                              <option value="2">2nd Year</option>
-                              <option value="3">3rd Year</option>
-                              <option value="4">4th Year</option>
+                              {availableYears.length > 1 && <option value="">Select Year</option>}
+                              {availableYears.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </div>
@@ -448,17 +511,25 @@ export default function ApplyModal({ position, onClose, onSuccess }) {
                     )}
 
                     {/* Year Eligibility Notice if restricted */}
-                    {position.eligibleYears && position.eligibleYears.length > 0 && position.eligibleYears.length < 4 && formData.year && !position.eligibleYears.includes(Number(formData.year)) && (
-                      <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-start gap-2.5 shadow-sm">
-                        <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
-                        <div>
-                          <strong className="text-amber-200">Year Eligibility Notice:</strong> This position is specifically open for{" "}
-                          <span className="text-white font-bold">
-                            {position.eligibleYears.slice().sort((a, b) => a - b).map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"}`).join(", ")} Year
-                          </span>{" "}
-                          students. Your currently selected academic year is <strong>{formData.year}{formData.year == 1 ? "st" : formData.year == 2 ? "nd" : formData.year == 3 ? "rd" : "th"} Year</strong>.
+                    {hasRestrictedYears && (
+                      ((user?.year && !position.eligibleYears.includes(Number(user.year))) ||
+                        (formData.year && !position.eligibleYears.includes(Number(formData.year)))) && (
+                        <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-start gap-2.5 shadow-sm">
+                          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+                          <div>
+                            <strong className="text-amber-200">Year Eligibility Notice:</strong> This position is specifically open for{" "}
+                            <span className="text-white font-bold">
+                              {position.eligibleYears
+                                .slice()
+                                .sort((a, b) => a - b)
+                                .map((y) => `${y}${y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th"}`)
+                                .join(", ")}{" "}
+                              Year
+                            </span>{" "}
+                            students only.
+                          </div>
                         </div>
-                      </div>
+                      )
                     )}
 
                     {/* Candidate links & specific fields */}
