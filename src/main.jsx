@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './utils/axiosInterceptor.js'
 import App from './App.jsx'
 import { HashRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
