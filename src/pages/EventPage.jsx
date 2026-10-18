@@ -27,19 +27,11 @@ export default function EventPage() {
     if (user) {
       dispatch(fetchRegistrations({ userId: user.id || user._id, role: user.role }));
     }
-  }, [dispatch, user]);
 
-  // Toast for success/error messages
-  useEffect(() => {
-    if (successMessage) {
-      toast.success(successMessage);
+    return () => {
       dispatch(clearMessages());
-    }
-    if (error) {
-      toast.error(error);
-      dispatch(clearMessages());
-    }
-  }, [successMessage, error, dispatch]);
+    };
+  }, [dispatch, user]);
 
   //Logic for date
   const now = new Date();

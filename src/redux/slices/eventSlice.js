@@ -113,10 +113,12 @@ const eventSlice = createSlice({
     builder
       .addCase(fetchEvents.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.loading = false;
         state.events = action.payload;
+        state.error = null;
       })
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
@@ -130,6 +132,7 @@ const eventSlice = createSlice({
       .addCase(registerForEvent.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
+        state.error = null;
       })
       .addCase(registerForEvent.rejected, (state, action) => {
         state.loading = false;
