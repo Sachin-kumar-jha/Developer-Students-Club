@@ -8,6 +8,27 @@ import EmojiPicker from "emoji-picker-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFaceSmile } from "@fortawesome/free-regular-svg-icons";
 
+// Helper to extract local date (YYYY-MM-DD) and time (HH:mm) from ISO string or Date
+const parseDateTime = (isoString) => {
+  if (!isoString) return { date: "", time: "" };
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return { date: "", time: "" };
+  const pad = (n) => String(n).padStart(2, "0");
+  const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return { date, time };
+};
+
+// Helper to combine local date (YYYY-MM-DD) and time (HH:mm) into an ISO string
+const combineDateTime = (dateStr, timeStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hours, minutes] = (timeStr || "00:00").split(":").map(Number);
+  const localDate = new Date(year, month - 1, day, hours || 0, minutes || 0, 0);
+  if (isNaN(localDate.getTime())) return "";
+  return localDate.toISOString();
+};
+
 export default function AddEventPage() {
   const navigate = useNavigate();
   const { id: eventId } = useParams();
@@ -18,7 +39,9 @@ export default function AddEventPage() {
     title: "",
     description: "",
     startDate: "",
+    startTime: "10:00",
     endDate: "",
+    endTime: "18:00",
     location: "",
     fee: "",
     upiId: "",
@@ -36,11 +59,16 @@ export default function AddEventPage() {
         try {
           const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/events/${eventId}`, { withCredentials: true });
           const event = res?.data;
+          const start = parseDateTime(event.startDate);
+          const end = parseDateTime(event.endDate);
+
           setFormData({
             title: event.title || "",
             description: event.description || "",
-            startDate: event.startDate?.split("T")[0] || "",
-            endDate: event.endDate?.split("T")[0] || "",
+            startDate: start.date,
+            startTime: start.time || "10:00",
+            endDate: end.date,
+            endTime: end.time || "18:00",
             location: event.location || "",
             fee: event.fee || "",
             upiId: event.upiId || "",
@@ -56,7 +84,7 @@ export default function AddEventPage() {
   
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "bannerImage" && files.length > 0) {
+    if (name === "bannerImage" && files && files.length > 0) {
       setFormData({ ...formData, bannerImage: files[0] });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -75,8 +103,26 @@ export default function AddEventPage() {
     setLoading(true);
 
     try {
+      const finalStartDate = combineDateTime(formData.startDate, formData.startTime);
+      const finalEndDate = combineDateTime(formData.endDate, formData.endTime);
+
+      if (finalStartDate && finalEndDate && new Date(finalEndDate) < new Date(finalStartDate)) {
+        toast.error("End date & time cannot be before start date & time");
+        setLoading(false);
+        return;
+      }
+
       const form = new FormData();
-      Object.entries(formData).forEach(([key, value]) => form.append(key, value));
+      form.append("title", formData.title);
+      form.append("description", formData.description);
+      form.append("startDate", finalStartDate);
+      form.append("endDate", finalEndDate);
+      form.append("location", formData.location);
+      form.append("fee", formData.fee || 0);
+      form.append("upiId", formData.upiId || "");
+      if (formData.bannerImage) {
+        form.append("bannerImage", formData.bannerImage);
+      }
 
       const url = eventId
         ? `${import.meta.env.VITE_API_URL}/api/events/${eventId}`
@@ -165,30 +211,56 @@ export default function AddEventPage() {
             )}
           </div>
 
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-300">Start Date</label>
-            <input
-              type="date"
-              name="startDate"
-              value={formData.startDate}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
-            />
+          {/* Start Date & Time */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-300">Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none text-white [color-scheme:dark]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-300">Start Time</label>
+              <input
+                type="time"
+                name="startTime"
+                value={formData.startTime}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none text-white [color-scheme:dark]"
+              />
+            </div>
           </div>
 
-          {/* End Date */}
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-300">End Date</label>
-            <input
-              type="date"
-              name="endDate"
-              value={formData.endDate}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
-            />
+          {/* End Date & Time */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-300">End Date</label>
+              <input
+                type="date"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none text-white [color-scheme:dark]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-300">End Time</label>
+              <input
+                type="time"
+                name="endTime"
+                value={formData.endTime}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none text-white [color-scheme:dark]"
+              />
+            </div>
           </div>
 
           {/* Location */}
@@ -205,7 +277,7 @@ export default function AddEventPage() {
             />
           </div>
 
-          {/* Banner Image */}
+          {/* Fee & UPI */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-300">Event Fee</label>
@@ -235,11 +307,21 @@ export default function AddEventPage() {
           {/* Banner Image */}
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-300">Banner Image</label>
+            {typeof formData.bannerImage === "string" && formData.bannerImage && (
+              <div className="mb-2">
+                <p className="text-xs text-gray-400 mb-1">Current Image Preview:</p>
+                <img
+                  src={formData.bannerImage}
+                  alt="Banner Preview"
+                  className="w-32 h-20 object-cover rounded-lg border border-gray-700"
+                />
+              </div>
+            )}
             <input
               type="file"
               name="bannerImage"
               onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
+              className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-teal-500/10 file:text-teal-400 hover:file:bg-teal-500/20"
             />
           </div>
 
@@ -247,7 +329,7 @@ export default function AddEventPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-teal-500 hover:bg-teal-400 transition-colors text-white font-semibold py-3 rounded-xl shadow-md mt-4"
+            className="w-full bg-teal-500 hover:bg-teal-400 transition-colors text-white font-semibold py-3 rounded-xl shadow-md mt-4 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (eventId ? "Updating..." : "Adding...") : eventId ? "Update Event" : "Add Event"}
           </button>

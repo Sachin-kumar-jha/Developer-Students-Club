@@ -17,8 +17,9 @@ export const loginUser = createAsyncThunk(
 
       return res.data;
     } catch (err) {
-      toast.error(err.response.data?.message);
-      return rejectWithValue(err.response.data);
+      const msg = err.response?.data?.message || err.message || "Login failed";
+      toast.error(msg);
+      return rejectWithValue(err.response?.data || { message: msg });
     }
   }
 );
@@ -51,7 +52,9 @@ export const registerUser = createAsyncThunk(
 
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(
+        err.response?.data || { message: err.message || "Registration failed" }
+      );
     }
   }
 );
