@@ -59,6 +59,9 @@ export default function TeamSignupPage() {
       );
 
       dispatch(setUser(response.data.user));
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
       toast.success(response.data?.message || "Team member registered successfully");
       navigate(`/profile/${response.data.user.id}`);
     } catch (error) {
