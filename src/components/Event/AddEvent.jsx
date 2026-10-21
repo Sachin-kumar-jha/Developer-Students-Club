@@ -45,6 +45,7 @@ export default function AddEventPage() {
     location: "",
     fee: "",
     upiId: "",
+    whatsappLink: "",
     bannerImage: "",
   });
   const [showEmojiPicker, setShowEmojiPicker] = useState({ title: false, description: false });
@@ -72,6 +73,7 @@ export default function AddEventPage() {
             location: event.location || "",
             fee: event.fee || "",
             upiId: event.upiId || "",
+            whatsappLink: event.whatsappLink || "",
             bannerImage: event.bannerImage || ""
           });
         } catch {
@@ -120,6 +122,7 @@ export default function AddEventPage() {
       form.append("location", formData.location);
       form.append("fee", formData.fee || 0);
       form.append("upiId", formData.upiId || "");
+      form.append("whatsappLink", formData.whatsappLink ? formData.whatsappLink.trim() : "");
       if (formData.bannerImage) {
         form.append("bannerImage", formData.bannerImage);
       }
@@ -302,6 +305,24 @@ export default function AddEventPage() {
                 className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none"
               />
             </div>
+          </div>
+
+          {/* WhatsApp Group Link */}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-300">
+              WhatsApp Group Link <span className="text-gray-500 font-mono text-xs">(Shown to students upon registration)</span>
+            </label>
+            <input
+              type="url"
+              name="whatsappLink"
+              value={formData.whatsappLink}
+              onChange={handleChange}
+              placeholder="https://chat.whatsapp.com/..."
+              className="w-full p-3 rounded-lg bg-[#0F1A24] border border-gray-600 focus:ring-2 focus:ring-teal-400 outline-none text-white font-mono text-sm"
+            />
+            <p className="text-[11px] text-gray-400 mt-1 font-mono">
+              Students will see a direct "Join WhatsApp Group" button after registering for this event.
+            </p>
           </div>
 
           {/* Banner Image */}

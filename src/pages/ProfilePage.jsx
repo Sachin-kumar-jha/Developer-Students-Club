@@ -7,7 +7,7 @@ import { setUser } from "../redux/slices/authSlice";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2, QrCode, ScanLine, CheckCircle, XCircle, Download, Clock } from "lucide-react";
+import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2, QrCode, ScanLine, CheckCircle, XCircle, Download, Clock, MessageCircle, ExternalLink } from "lucide-react";
 import axios from "axios";
 import QRCode from "qrcode";
 import { Html5Qrcode } from "html5-qrcode";
@@ -1039,6 +1039,22 @@ export default function ProfilePage() {
                                 })}
                               </span>
                             </div>
+
+                            {/* WhatsApp Group Link */}
+                            {r.eventId?.whatsappLink && (
+                              <div className="mt-3">
+                                <a
+                                  href={r.eventId.whatsappLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300 font-mono text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5 fill-emerald-400/20" />
+                                  <span>Join WhatsApp Group</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
