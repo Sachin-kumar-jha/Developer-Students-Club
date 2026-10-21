@@ -7,6 +7,7 @@ import { fetchRegistrations } from "../redux/slices/registrationSlice.js";
 import axios from "axios";
 import { useState } from "react";
 import AuthModal from "../components/AuthModal.jsx";
+import { MessageCircle, ExternalLink, Check, Copy, X } from "lucide-react";
 
 export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) {
   const dispatch = useDispatch();
@@ -22,10 +23,14 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
     (r) => (r.eventId?._id || r.eventId) === event._id
   );
 
+  const effectiveWhatsappLink = event.whatsappLink || myRegistration?.eventId?.whatsappLink || "";
+
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [paymentEvent, setPaymentEvent] = useState(null);
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
+  const [registrationSuccessModal, setRegistrationSuccessModal] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const handleRegister = async (id) => {
     if (!user) {
@@ -47,6 +52,14 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
         dispatch(fetchRegistrations({ userId: user.id || user._id, role: user.role }));
       }
       if (onRefresh) onRefresh();
+
+      const groupLink = result.payload?.whatsappLink || event.whatsappLink || "";
+      if (groupLink) {
+        setRegistrationSuccessModal({
+          title: event.title,
+          whatsappLink: groupLink,
+        });
+      }
     } else {
       toast.error(result.payload || "Failed to register for event");
     }
@@ -89,11 +102,20 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
 
         if (verifyRazorpayPayment.fulfilled.match(verifyResult)) {
           toast.success(verifyResult.payload.message || "Payment verified successfully!");
+          const currentPaidEvent = paymentEvent;
           setPaymentEvent(null);
           if (user) {
             dispatch(fetchRegistrations({ userId: user.id || user._id, role: user.role }));
           }
           if (onRefresh) onRefresh();
+
+          const groupLink = verifyResult.payload?.whatsappLink || currentPaidEvent?.whatsappLink || event.whatsappLink || "";
+          if (groupLink) {
+            setRegistrationSuccessModal({
+              title: currentPaidEvent?.title || event.title,
+              whatsappLink: groupLink,
+            });
+          }
         } else {
           toast.error(verifyResult.payload || "Payment verification failed");
         }
@@ -243,6 +265,21 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
                 </motion.button>
               )}
 
+              {!isAdmin && !isPast && isRegistered && effectiveWhatsappLink && (
+                <motion.a
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  href={effectiveWhatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 font-bold font-mono uppercase tracking-wider rounded-xl transition-all duration-300 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.35)] flex items-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 fill-black text-black" />
+                  <span>Join WhatsApp Group</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </motion.a>
+              )}
+
               {!isAdmin && isPast && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -347,6 +384,105 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
               <span>Powered by Razorpay Secure Payments</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Registration Success Modal with WhatsApp Group Link */}
+      {registrationSuccessModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="w-full max-w-lg bg-[#0F1A24] border border-emerald-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(16,185,129,0.25)] relative overflow-hidden text-center space-y-6"
+          >
+            {/* Top gradient highlight */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400"></div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setRegistrationSuccessModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Success icon */}
+            <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              <Check className="w-10 h-10 text-emerald-400" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 inline-block">
+                Registration Confirmed
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                You're In! 🎉
+              </h3>
+              <p className="text-gray-300 text-sm max-w-md mx-auto leading-relaxed">
+                You have successfully registered for <strong className="text-teal-300">{registrationSuccessModal.title}</strong>.
+              </p>
+            </div>
+
+            {/* WhatsApp Card */}
+            {registrationSuccessModal.whatsappLink && (
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-black/60 to-[#0F1A24] border-2 border-emerald-500/40 shadow-[0_0_40px_rgba(16,185,129,0.2)] text-left space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
+                    <MessageCircle className="w-6 h-6 text-emerald-400 fill-emerald-400/20" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">Join the Official WhatsApp Group</h4>
+                    <p className="text-xs text-gray-400 font-mono">
+                      Workshop links, room venues & announcements
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-emerald-200/90 leading-relaxed font-sans">
+                  Follow this link to join the WhatsApp group and stay connected with the organizers and participants:
+                </p>
+
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-black/60 border border-gray-800 text-xs font-mono text-gray-400 break-all">
+                  <span className="truncate flex-1 text-teal-300 select-all">
+                    {registrationSuccessModal.whatsappLink}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(registrationSuccessModal.whatsappLink);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                      toast.info("WhatsApp link copied to clipboard!");
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs flex items-center gap-1.5 transition flex-shrink-0 cursor-pointer font-sans font-medium"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+
+                <a
+                  href={registrationSuccessModal.whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2.5 w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-black font-extrabold font-mono uppercase tracking-wider rounded-xl transition shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-[0.98] text-sm cursor-pointer"
+                >
+                  <MessageCircle className="w-5 h-5 fill-black" />
+                  Join WhatsApp Group Now
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setRegistrationSuccessModal(null)}
+              className="w-full py-3 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold hover:text-white transition duration-300 cursor-pointer text-center text-sm font-mono"
+            >
+              Done / Close
+            </button>
+          </motion.div>
         </div>
       )}
     </>
