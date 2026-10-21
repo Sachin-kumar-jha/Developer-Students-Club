@@ -154,7 +154,7 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
 
   return (
     <>
-      {isAuthModalOpen && <AuthModal onClose={() => { setAuthModalOpen(false); navigate("/"); }} />}
+      {isAuthModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
 
       <motion.div
         key={event._id || event.id || index}

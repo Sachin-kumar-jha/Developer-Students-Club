@@ -12,8 +12,11 @@ export const loginUser = createAsyncThunk(
       const res = await axios.post(`${API_URL}/login`, formData, {
         withCredentials: true,
       });
-      // Save user to localStorage
+      // Save user & token to localStorage
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
 
       return res.data;
     } catch (err) {
@@ -32,6 +35,9 @@ export const googleLoginUser = createAsyncThunk(
         withCredentials: true,
       });
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || { message: "Google login failed" });
@@ -47,8 +53,11 @@ export const registerUser = createAsyncThunk(
         withCredentials: true,
       });
       
-      // Save user to localStorage
+      // Save user & token to localStorage
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
 
       return res.data;
     } catch (err) {
@@ -68,8 +77,11 @@ export const logoutUser = createAsyncThunk(
         { withCredentials: true }
       );
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
       return response.data;
     } catch (error) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
       return rejectWithValue(error.response?.data?.message || "Logout failed");
     }
   }
@@ -78,9 +90,9 @@ export const logoutUser = createAsyncThunk(
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    // Initialize user from localStorage to persist login
+    // Initialize user and token from localStorage to persist login
     user: JSON.parse(localStorage.getItem("user")) || null,
-    token: null,
+    token: localStorage.getItem("token") || null,
     loading: false,
     error: null,
   },
@@ -88,6 +100,14 @@ const authSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload;
       localStorage.setItem("user", JSON.stringify(action.payload));
+    },
+    setToken: (state, action) => {
+      state.token = action.payload;
+      if (action.payload) {
+        localStorage.setItem("token", action.payload);
+      } else {
+        localStorage.removeItem("token");
+      }
     },
   },
   extraReducers: (builder) => {
@@ -100,7 +120,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = action.payload.token || null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -115,7 +135,7 @@ const authSlice = createSlice({
       .addCase(googleLoginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = action.payload.token || null;
       })
       .addCase(googleLoginUser.rejected, (state, action) => {
         state.loading = false;
@@ -130,7 +150,7 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = action.payload.token || null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -147,6 +167,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -154,9 +175,10 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       });
   },
 });
 
-export const {setUser } = authSlice.actions;
+export const { setUser, setToken } = authSlice.actions;
 export default authSlice.reducer;
