@@ -146,18 +146,24 @@ export default function TeamSignupPage() {
           </div>
 
           <div className="flex flex-col gap-1.5 text-left">
-            <label className="text-xs text-gray-500 font-mono uppercase tracking-wider pl-1">Academic Year</label>
+            <label className="text-xs text-gray-500 font-mono uppercase tracking-wider pl-1">Academic Year / Batch</label>
             <input
-              type="number"
+              type="text"
+              list="signup-year-options"
               name="year"
-              min={1}
-              max={4}
-              placeholder="Enter your year (1 - 4)"
+              placeholder="e.g. 1, 2, 3, 4, or 2026 (Alumni)"
               value={formData.year}
               onChange={handleChange}
               className="p-3.5 rounded-xl bg-[#0F1A24]/60 border border-gray-800/80 text-white outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 transition-all duration-300 placeholder:text-gray-600 text-sm"
               required
             />
+            <datalist id="signup-year-options">
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">Final Year (4th Year)</option>
+              <option value="2026">2026 Passout / Alumni</option>
+            </datalist>
           </div>
 
           <div className="flex flex-col gap-1.5 text-left">

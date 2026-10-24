@@ -2,10 +2,15 @@ import { motion } from "framer-motion";
 import FadeInSection from "./FadeInsection.jsx";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import divyanshuImg from "../assets/divyanshu_sharma.png";
+import ashokImg from "../assets/ashok_dewasi.png";
 
 const getYearLabel = (year) => {
   if (!year) return "Core Members / Coordinators";
   const yr = year.toString().toLowerCase().trim();
+  if (yr.includes("2026") || yr.includes("alumni") || yr.includes("passout") || yr.includes("pass-out") || yr.includes("graduat") || yr.includes("senior")) {
+    return "Our Alumni & Senior Mentors (Batch of 2026)";
+  }
   if (yr.includes("4") || yr.includes("fourth") || yr.includes("final")) {
     return "Final Year (4th Year)";
   }
@@ -19,6 +24,14 @@ const getYearLabel = (year) => {
     return "First Year (1st Year)";
   }
   return `Year ${year}`;
+};
+
+const getMemberPhoto = (member) => {
+  if (member.profileImage) return member.profileImage;
+  const name = (member.name || "").toLowerCase();
+  if (name.includes("divyanshu")) return divyanshuImg;
+  if (name.includes("ashok")) return ashokImg;
+  return "https://t4.ftcdn.net/jpg/02/14/74/61/360_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg";
 };
 
 export default function Team() {
@@ -55,7 +68,8 @@ export default function Team() {
     "Pre-Final Year (3rd Year)",
     "Second Year (2nd Year)",
     "First Year (1st Year)",
-    "Core Members / Coordinators"
+    "Core Members / Coordinators",
+    "Our Alumni & Senior Mentors (Batch of 2026)",
   ];
 
   // Sort the keys based on our defined order
@@ -95,7 +109,7 @@ export default function Team() {
                   {/* Circular image with hover zoom effect and ring */}
                   <div className="w-36 h-36 rounded-full overflow-hidden border-2 border-transparent group-hover:border-teal-400 shadow-xl transition-all duration-300 transform group-hover:scale-105">
                     <img
-                      src={member.profileImage || "https://t4.ftcdn.net/jpg/02/14/74/61/360_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg"}
+                      src={getMemberPhoto(member)}
                       alt={member.name}
                       loading="lazy"
                       className="w-full h-full object-cover"
