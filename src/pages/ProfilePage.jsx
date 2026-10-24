@@ -1584,16 +1584,22 @@ export default function ProfilePage() {
 
                 {/* Year */}
                 <div>
-                  <label className="block text-xs font-mono text-gray-400 mb-1">Year</label>
+                  <label className="block text-xs font-mono text-gray-400 mb-1">Year / Batch</label>
                   <input
-                    type="number"
-                    min="1"
-                    max="4"
-                    placeholder="e.g. 3"
+                    type="text"
+                    list="team-modal-year-options"
+                    placeholder="e.g. 4, 3, 2, 1, or 2026"
                     value={modalForm.year}
                     onChange={(e) => setModalForm({ ...modalForm, year: e.target.value })}
                     className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
                   />
+                  <datalist id="team-modal-year-options">
+                    <option value="4">Final Year (4th Year)</option>
+                    <option value="3">Pre-Final Year (3rd Year)</option>
+                    <option value="2">Second Year (2nd Year)</option>
+                    <option value="1">First Year (1st Year)</option>
+                    <option value="2026">Alumni / 2026 Passout</option>
+                  </datalist>
                 </div>
               </div>
 
@@ -1736,16 +1742,23 @@ export default function ProfilePage() {
 
                 {/* Year */}
                 <div>
-                  <label className="block text-xs font-mono text-gray-400 mb-1">Year</label>
+                  <label className="block text-xs font-mono text-gray-400 mb-1">Year / Batch</label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    min="1"
-                    max="4"
+                    list="profile-modal-year-options"
+                    placeholder="e.g. 1-4 or 2026"
                     value={profileForm.year}
                     onChange={(e) => setProfileForm({ ...profileForm, year: e.target.value })}
                     className="w-full p-2.5 rounded bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-teal-400 text-sm"
                   />
+                  <datalist id="profile-modal-year-options">
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">Final Year (4th Year)</option>
+                    <option value="2026">Alumni / 2026 Passout</option>
+                  </datalist>
                 </div>
               </div>
 
