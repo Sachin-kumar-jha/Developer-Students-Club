@@ -28,6 +28,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
 const EventPage = lazy(() => import("./pages/EventPage.jsx"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage.jsx"));
 const EventHighlightsPage = lazy(() => import("./components/Gallery/EventHighlightsPage"));
+const CertificateVerificationPage = lazy(() => import("./pages/CertificateVerificationPage.jsx"));
 
 export default function App() {
   const navigate = useNavigate();
@@ -184,6 +185,32 @@ export default function App() {
               path="/contact"
               element={
                 <Contact />
+              }
+            />
+
+            {/* Public Certificate Verification Routes */}
+            <Route
+              path="/verify/:certificateId"
+              element={
+                <Suspense fallback={<SuspenseLoader />}>
+                  <CertificateVerificationPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/verify"
+              element={
+                <Suspense fallback={<SuspenseLoader />}>
+                  <CertificateVerificationPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/verify-certificate/:certificateId"
+              element={
+                <Suspense fallback={<SuspenseLoader />}>
+                  <CertificateVerificationPage />
+                </Suspense>
               }
             />
           </Routes>

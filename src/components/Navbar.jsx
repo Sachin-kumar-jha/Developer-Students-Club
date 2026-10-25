@@ -7,6 +7,7 @@ import AvatarMenu from "./AvatarMenu.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../redux/slices/authSlice";
 import { toast } from "react-toastify";
+import { Award } from "lucide-react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -127,6 +128,10 @@ export default function Navbar() {
               </Link>
               <Link to="/gallery" className="hover:text-teal-400 transition">
                 Gallery
+              </Link>
+              <Link to="/verify" className="hover:text-teal-400 transition flex items-center gap-1.5 text-teal-300 font-medium">
+                <Award className="w-3.5 h-3.5 text-teal-400" />
+                Verify
               </Link>
               <Link to="/contact" className="hover:text-teal-400 transition">
                 Contact
@@ -249,6 +254,16 @@ export default function Navbar() {
                 >
                   <Link onClick={closeMenu} to="/gallery" className="text-lg">
                     Gallery
+                  </Link>
+                </motion.div>
+                <motion.div
+                  className="hover:text-[#5eead4] transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link onClick={closeMenu} to="/verify" className="text-lg flex items-center gap-2 text-teal-300">
+                    <Award className="w-5 h-5 text-teal-400" />
+                    Verify Certificate
                   </Link>
                 </motion.div>
                 <motion.div

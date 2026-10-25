@@ -7,12 +7,14 @@ import { setUser } from "../redux/slices/authSlice";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2, QrCode, ScanLine, CheckCircle, XCircle, Download, Clock, MessageCircle, ExternalLink } from "lucide-react";
+import { User, Mail, Shield, Calendar, Users, Code2, GraduationCap, UserPlus, Link2, QrCode, ScanLine, CheckCircle, XCircle, Download, Clock, MessageCircle, ExternalLink, Award } from "lucide-react";
 import axios from "axios";
 import QRCode from "qrcode";
 import { Html5Qrcode } from "html5-qrcode";
 import { jsPDF } from "jspdf";
 import ManagePositions from "../components/Admin/ManagePositions";
+import ManageCertificates from "../components/Admin/ManageCertificates";
+import MyCertificates from "../components/Student/MyCertificates";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -894,6 +896,56 @@ export default function ProfilePage() {
                 />
               )}
             </button>
+            <button
+              onClick={() => { stopScanner(); setActiveTab("certificates"); }}
+              className={`pb-3 px-2 font-bold font-mono tracking-wider transition relative text-sm flex items-center gap-1.5 ${
+                activeTab === "certificates" ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <Award className="w-4 h-4 text-teal-400" />
+              CERTIFICATES
+              {activeTab === "certificates" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-400"
+                />
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Student Navigation Tabs */}
+        {user.role !== "admin" && (
+          <div className="flex gap-6 border-b border-teal-500/20 mb-8 pb-1">
+            <button
+              onClick={() => setActiveTab("registrations")}
+              className={`pb-3 px-2 font-bold font-mono tracking-wider transition relative text-sm ${
+                activeTab === "registrations" ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              YOUR EVENTS
+              {activeTab === "registrations" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-400"
+                />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("certificates")}
+              className={`pb-3 px-2 font-bold font-mono tracking-wider transition relative text-sm flex items-center gap-1.5 ${
+                activeTab === "certificates" ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <Award className="w-4 h-4 text-teal-400" />
+              YOUR CERTIFICATES
+              {activeTab === "certificates" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-400"
+                />
+              )}
+            </button>
           </div>
         )}
 
@@ -1041,8 +1093,8 @@ export default function ProfilePage() {
                             </div>
 
                             {/* WhatsApp Group Link */}
-                            {r.eventId?.whatsappLink && (
-                              <div className="mt-3">
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              {r.eventId?.whatsappLink && (
                                 <a
                                   href={r.eventId.whatsappLink}
                                   target="_blank"
@@ -1053,8 +1105,18 @@ export default function ProfilePage() {
                                   <span>Join WhatsApp Group</span>
                                   <ExternalLink className="w-3 h-3" />
                                 </a>
-                              </div>
-                            )}
+                              )}
+
+                              {user.role !== "admin" && (
+                                <button
+                                  onClick={() => setActiveTab("certificates")}
+                                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-500/40 text-teal-300 hover:bg-teal-500/30 hover:text-white font-mono text-xs font-bold transition-all shadow-[0_0_15px_rgba(20,184,166,0.15)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                                >
+                                  <Award className="w-3.5 h-3.5 text-teal-400" />
+                                  <span>View Certificate</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1444,8 +1506,18 @@ export default function ProfilePage() {
           <ManagePositions />
         )}
 
+        {/* Manage Certificates Section (Admin only) */}
+        {activeTab === "certificates" && user.role === "admin" && (
+          <ManageCertificates />
+        )}
+
+        {/* My Certificates Section (Non-admin students) */}
+        {activeTab === "certificates" && user.role !== "admin" && (
+          <MyCertificates />
+        )}
+
         {/* User Attendance History (non-admin) */}
-        {user.role !== "admin" && (
+        {user.role !== "admin" && activeTab === "registrations" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
