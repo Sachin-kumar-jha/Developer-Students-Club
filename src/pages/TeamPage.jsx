@@ -250,10 +250,10 @@ export default function TeamPage() {
       {/* Our Alumni & Senior Mentors (2026 Passout Seniors) */}
       {alumniMembers.length > 0 && (
         <motion.section
-          variants={container}
-          initial="hidden"
-          whileInView="show"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
           className="max-w-5xl mx-auto mb-20"
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 border-b border-gray-800 pb-4">
@@ -275,9 +275,8 @@ export default function TeamPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
             {alumniMembers.map((person, idx) => (
-              <motion.div
+              <div
                 key={person._id || idx}
-                variants={item}
                 className="flex flex-col items-center text-center group"
               >
                 <div className="relative mb-3">
@@ -287,6 +286,16 @@ export default function TeamPage() {
                       alt={person.name}
                       loading="lazy"
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const lowerName = (person.name || "").toLowerCase();
+                        if (lowerName.includes("divyanshu")) {
+                          e.currentTarget.src = divyanshuImg;
+                        } else if (lowerName.includes("ashok")) {
+                          e.currentTarget.src = ashokImg;
+                        } else {
+                          e.currentTarget.src = image;
+                        }
+                      }}
                     />
                   </div>
                   <span className="absolute -bottom-1 -right-1 bg-[#0F1A24] border border-teal-500/40 text-teal-300 p-1 rounded-full shadow">
@@ -318,7 +327,7 @@ export default function TeamPage() {
                     <Linkedin className="w-4 h-4" />
                   </a>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </motion.section>

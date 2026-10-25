@@ -113,6 +113,16 @@ export default function Team() {
                       alt={member.name}
                       loading="lazy"
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const name = (member.name || "").toLowerCase();
+                        if (name.includes("divyanshu")) {
+                          e.currentTarget.src = divyanshuImg;
+                        } else if (name.includes("ashok")) {
+                          e.currentTarget.src = ashokImg;
+                        } else {
+                          e.currentTarget.src = "https://t4.ftcdn.net/jpg/02/14/74/61/360_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg";
+                        }
+                      }}
                     />
                   </div>
 
