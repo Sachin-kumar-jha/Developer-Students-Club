@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { verifyCertificate, clearVerification } from "../redux/slices/certificateSlice.js";
 import {
   renderCertificateToCanvas,
+  resolveTemplateConfig,
   downloadCertificatePNG,
   downloadCertificatePDF,
 } from "../utils/certificateRenderer.js";
@@ -49,7 +50,7 @@ export default function CertificateVerificationPage() {
   useEffect(() => {
     if (verifiedCertificate?.valid && verifiedCertificate.certificate) {
       const cert = verifiedCertificate.certificate;
-      const template = cert.event?.certificateTemplate || cert.templateConfig || {};
+      const template = resolveTemplateConfig(cert);
 
       setIsRendering(true);
       setTimeout(async () => {

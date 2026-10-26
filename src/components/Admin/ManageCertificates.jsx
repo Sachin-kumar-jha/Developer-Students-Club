@@ -12,6 +12,7 @@ import {
 import { fetchEvents } from "../../redux/slices/eventSlice.js";
 import {
   renderCertificateToCanvas,
+  resolveTemplateConfig,
   downloadCertificatePNG,
   downloadCertificatePDF,
   getVerificationUrl,
@@ -98,7 +99,7 @@ export default function ManageCertificates() {
     issueDate: new Date().toISOString().split("T")[0],
     // Precise Position & Dimension Controls
     nameX: 50,
-    nameY: 41.5,
+    nameY: 47,
     nameFontSize: 54,
     nameColor: "#000000",
     showRollNo: false,
@@ -178,7 +179,7 @@ export default function ManageCertificates() {
         qrPosition: ct.qrPosition || "bottom-center",
         issueDate: ct.issueDate ? ct.issueDate.split("T")[0] : new Date().toISOString().split("T")[0],
         nameX: ct.nameX !== undefined ? ct.nameX : 50,
-        nameY: ct.nameY !== undefined ? ct.nameY : 41.5,
+        nameY: ct.nameY !== undefined ? ct.nameY : 47,
         nameFontSize: ct.nameFontSize || 54,
         nameColor: ct.nameColor || "#000000",
         showRollNo: Boolean(ct.showRollNo),
@@ -272,11 +273,11 @@ export default function ManageCertificates() {
     if (showPreviewModal && selectedCertForPreview && previewCanvasRef.current) {
       setTimeout(async () => {
         try {
-          const tConfig =
-            selectedCertForPreview.event?.certificateTemplate ||
-            selectedCertForPreview.templateConfig ||
-            eventData?.certificateTemplate ||
-            {};
+          const tConfig = resolveTemplateConfig(
+            selectedCertForPreview,
+            {},
+            eventData?.certificateTemplate
+          );
           await renderCertificateToCanvas(
             previewCanvasRef.current,
             selectedCertForPreview,
@@ -446,11 +447,11 @@ export default function ManageCertificates() {
   const handleDownloadSinglePDF = async (cert) => {
     try {
       const tempCanvas = document.createElement("canvas");
-      const tConfig =
-        cert.event?.certificateTemplate ||
-        cert.templateConfig ||
-        eventData?.certificateTemplate ||
-        {};
+      const tConfig = resolveTemplateConfig(
+        cert,
+        {},
+        eventData?.certificateTemplate
+      );
       await renderCertificateToCanvas(tempCanvas, cert, tConfig);
       const filename = `${cert.recipientName.replace(/\s+/g, "_")}_${
         cert.certificateId

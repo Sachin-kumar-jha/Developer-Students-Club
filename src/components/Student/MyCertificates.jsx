@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMyCertificates } from "../../redux/slices/certificateSlice.js";
 import {
   renderCertificateToCanvas,
+  resolveTemplateConfig,
   downloadCertificatePNG,
   downloadCertificatePDF,
   getVerificationUrl,
@@ -38,10 +39,7 @@ export default function MyCertificates() {
     if (showModal && selectedCert && canvasRef.current) {
       setTimeout(async () => {
         try {
-          const tConfig =
-            selectedCert.eventId?.certificateTemplate ||
-            selectedCert.templateConfig ||
-            {};
+          const tConfig = resolveTemplateConfig(selectedCert);
           await renderCertificateToCanvas(canvasRef.current, selectedCert, tConfig);
         } catch (err) {
           console.error("Failed to render certificate canvas:", err);
@@ -53,8 +51,7 @@ export default function MyCertificates() {
   const handleDownloadPDF = async (cert) => {
     try {
       const tempCanvas = document.createElement("canvas");
-      const tConfig =
-        cert.eventId?.certificateTemplate || cert.templateConfig || {};
+      const tConfig = resolveTemplateConfig(cert);
       await renderCertificateToCanvas(tempCanvas, cert, tConfig);
       const filename = `${cert.recipientName.replace(/\s+/g, "_")}_${
         cert.certificateId
