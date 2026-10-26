@@ -47,6 +47,7 @@ import {
   UserX,
   Check,
   ArrowRight,
+  Clock,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -394,8 +395,10 @@ export default function ManageCertificates() {
       recipientEmail: cand.email || "",
       userId: cand.userId || "",
       certificateType: "participation",
-      customNotes: cand.attended
-        ? "Issued via event attendance"
+      customNotes: cand.attendedBothDays
+        ? "Issued via complete event attendance (22 & 23 Oct)"
+        : cand.daysAttendedCount > 0
+        ? "Issued via 1-day attendance (Admin approval)"
         : "Manually issued by Administrator (Attendance override)",
     });
     setShowSingleIssueModal(true);
@@ -519,16 +522,30 @@ export default function ManageCertificates() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-800">
           <div className="bg-black/40 border border-teal-500/20 rounded-xl p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center flex-shrink-0">
               <Users className="w-6 h-6 text-teal-400" />
             </div>
             <div>
               <div className="text-2xl font-black text-white font-mono">
-                {stats?.attendedCount || 0}
+                {stats?.attendedBothDaysCount !== undefined ? stats.attendedBothDaysCount : (stats?.attendedCount || 0)}
               </div>
-              <div className="text-gray-400 text-xs">Attended Students (Eligible)</div>
+              <div className="text-teal-400 text-xs font-bold">Both Days Attendees (22 & 23 Oct)</div>
+              <div className="text-gray-400 text-[10px] font-mono">Eligible by default</div>
+            </div>
+          </div>
+
+          <div className="bg-black/40 border border-amber-500/20 rounded-xl p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+              <Clock className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-amber-300 font-mono">
+                {stats?.attendedSingleDayCount || 0}
+              </div>
+              <div className="text-amber-400 text-xs font-bold">1 Day Attendees Only</div>
+              <div className="text-gray-500 text-[10px] font-mono">Excluded from auto-issue</div>
             </div>
           </div>
 
@@ -540,7 +557,8 @@ export default function ManageCertificates() {
               <div className="text-2xl font-black text-white font-mono">
                 {stats?.registeredCount || 0}
               </div>
-              <div className="text-gray-400 text-xs">Total Registrations</div>
+              <div className="text-gray-400 text-xs font-bold">Total Registrations</div>
+              <div className="text-gray-500 text-[10px] font-mono">{stats?.totalAttendeesAnyDay || 0} came on any day</div>
             </div>
           </div>
 
@@ -552,7 +570,8 @@ export default function ManageCertificates() {
               <div className="text-2xl font-black text-emerald-400 font-mono">
                 {eventCertificates.length}
               </div>
-              <div className="text-gray-400 text-xs">Certificates Issued</div>
+              <div className="text-gray-400 text-xs font-bold">Certificates Issued</div>
+              <div className="text-emerald-400/80 text-[10px] font-mono">100% Authentic Active</div>
             </div>
           </div>
         </div>
@@ -570,7 +589,9 @@ export default function ManageCertificates() {
             className="px-5 py-3 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 text-black font-black rounded-xl text-sm transition flex items-center gap-2 cursor-pointer shadow-lg shadow-teal-500/20 disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4" />
-            {generating ? "Generating..." : `Issue Certificates to Attendees (${stats?.attendedCount || 0})`}
+            {generating
+              ? "Generating..."
+              : `Issue to Both Days Attendees (${stats?.attendedBothDaysCount !== undefined ? stats.attendedBothDaysCount : (stats?.attendedCount || 0)})`}
           </button>
 
           <button
@@ -815,26 +836,37 @@ export default function ManageCertificates() {
                   All ({candidates.length})
                 </button>
                 <button
-                  onClick={() => setCandidateFilter("attended")}
+                  onClick={() => setCandidateFilter("both_days")}
                   className={`px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-                    candidateFilter === "attended"
+                    candidateFilter === "both_days"
                       ? "bg-green-500/20 border border-green-500/50 text-green-300 font-bold"
                       : "bg-black/40 text-gray-400 hover:text-white"
                   }`}
                 >
                   <UserCheck className="w-3.5 h-3.5 text-green-400" />
-                  Attended ({candidates.filter((c) => c.attended).length})
+                  Both Days ({candidates.filter((c) => c.attendedBothDays).length})
+                </button>
+                <button
+                  onClick={() => setCandidateFilter("single_day")}
+                  className={`px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
+                    candidateFilter === "single_day"
+                      ? "bg-amber-500/20 border border-amber-500/50 text-amber-300 font-bold"
+                      : "bg-black/40 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  1 Day Only ({candidates.filter((c) => !c.attendedBothDays && c.daysAttendedCount > 0).length})
                 </button>
                 <button
                   onClick={() => setCandidateFilter("not_attended")}
                   className={`px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                     candidateFilter === "not_attended"
-                      ? "bg-amber-500/20 border border-amber-500/50 text-amber-300 font-bold"
+                      ? "bg-red-500/20 border border-red-500/50 text-red-300 font-bold"
                       : "bg-black/40 text-gray-400 hover:text-white"
                   }`}
                 >
-                  <UserX className="w-3.5 h-3.5 text-amber-400" />
-                  Did Not Attend ({candidates.filter((c) => !c.attended).length})
+                  <UserX className="w-3.5 h-3.5 text-red-400" />
+                  Did Not Attend ({candidates.filter((c) => !c.daysAttendedCount).length})
                 </button>
                 <button
                   onClick={() => setCandidateFilter("pending")}
@@ -873,7 +905,7 @@ export default function ManageCertificates() {
                     <tr>
                       <th className="px-6 py-4">Student</th>
                       <th className="px-6 py-4">Roll No / Branch</th>
-                      <th className="px-6 py-4">Attendance</th>
+                      <th className="px-6 py-4">Attendance Status</th>
                       <th className="px-6 py-4">Certificate Status</th>
                       <th className="px-6 py-4 text-right">Admin Action</th>
                     </tr>
@@ -881,8 +913,9 @@ export default function ManageCertificates() {
                   <tbody className="divide-y divide-gray-800/60 font-sans">
                     {candidates
                       .filter((c) => {
-                        if (candidateFilter === "attended") return c.attended;
-                        if (candidateFilter === "not_attended") return !c.attended;
+                        if (candidateFilter === "both_days" || candidateFilter === "attended") return c.attendedBothDays;
+                        if (candidateFilter === "single_day") return !c.attendedBothDays && c.daysAttendedCount > 0;
+                        if (candidateFilter === "not_attended") return !c.daysAttendedCount;
                         if (candidateFilter === "pending") return !c.hasCertificate;
                         return true;
                       })
@@ -899,13 +932,18 @@ export default function ManageCertificates() {
                           </td>
 
                           <td className="px-6 py-4">
-                            {cand.attended ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-green-500/15 text-green-400 border border-green-500/30">
+                            {cand.attendedBothDays ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-green-500/15 text-green-400 border border-green-500/30">
                                 <UserCheck className="w-3.5 h-3.5" />
-                                Attended
+                                Both Days (22 & 23 Oct)
+                              </span>
+                            ) : cand.daysAttendedCount > 0 ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                <Clock className="w-3.5 h-3.5" />
+                                1 Day ({cand.attendedDates?.[0] ? cand.attendedDates[0].replace(/.*-/, '') + ' Oct' : '1 Day'})
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-gray-500/15 text-gray-400 border border-gray-500/30">
                                 <UserX className="w-3.5 h-3.5" />
                                 Did Not Attend
                               </span>
@@ -1488,7 +1526,7 @@ export default function ManageCertificates() {
               You are about to issue authentic certificates to{" "}
               <strong className="text-teal-400 font-mono">
                 {bulkTarget === "attended"
-                  ? `${stats?.attendedCount || 0} students who attended`
+                  ? `${stats?.attendedBothDaysCount !== undefined ? stats.attendedBothDaysCount : (stats?.attendedCount || 0)} students who attended BOTH days (22 & 23 Oct)`
                   : `${stats?.registeredCount || 0} registered students`}
               </strong>
               .
