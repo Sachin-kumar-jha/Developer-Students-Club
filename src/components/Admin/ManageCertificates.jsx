@@ -1127,7 +1127,7 @@ export default function ManageCertificates() {
                           setTemplateForm((prev) => ({
                             ...prev,
                             nameX: 50,
-                            nameY: 41.5,
+                            nameY: 47,
                             qrX: 50,
                             qrY: 88,
                             qrSize: 140,

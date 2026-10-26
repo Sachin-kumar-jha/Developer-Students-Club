@@ -97,82 +97,82 @@ export const resolveTemplateConfig = (certificate = {}, overrideConfig = {}, eve
   const certTemplate = certificate?.templateConfig || {};
 
   return {
-    ...eventTemplate,
     ...certTemplate,
+    ...eventTemplate,
     ...overrideConfig,
     imageUrl:
       overrideConfig.imageUrl ||
-      certTemplate.imageUrl ||
       eventTemplate.imageUrl ||
+      certTemplate.imageUrl ||
       "",
     nameX: Number(
       overrideConfig.nameX ??
-      certTemplate.nameX ??
       eventTemplate.nameX ??
+      certTemplate.nameX ??
       50
     ),
     nameY: Number(
       overrideConfig.nameY ??
-      certTemplate.nameY ??
       eventTemplate.nameY ??
+      certTemplate.nameY ??
       47
     ),
     nameFontSize: Number(
       overrideConfig.nameFontSize ??
-      certTemplate.nameFontSize ??
       eventTemplate.nameFontSize ??
+      certTemplate.nameFontSize ??
       54
     ),
     nameColor:
       overrideConfig.nameColor ||
-      certTemplate.nameColor ||
       eventTemplate.nameColor ||
+      certTemplate.nameColor ||
       "#000000",
     nameFontWeight:
       overrideConfig.nameFontWeight ||
-      certTemplate.nameFontWeight ||
       eventTemplate.nameFontWeight ||
+      certTemplate.nameFontWeight ||
       "bold",
     showRollNo: Boolean(
       overrideConfig.showRollNo ??
-      certTemplate.showRollNo ??
       eventTemplate.showRollNo ??
+      certTemplate.showRollNo ??
       false
     ),
     showBranch: Boolean(
       overrideConfig.showBranch ??
-      certTemplate.showBranch ??
       eventTemplate.showBranch ??
+      certTemplate.showBranch ??
       false
     ),
     qrX: Number(
       overrideConfig.qrX ??
-      certTemplate.qrX ??
       eventTemplate.qrX ??
+      certTemplate.qrX ??
       50
     ),
     qrY: Number(
       overrideConfig.qrY ??
-      certTemplate.qrY ??
       eventTemplate.qrY ??
+      certTemplate.qrY ??
       88
     ),
     qrSize: Number(
       overrideConfig.qrSize ??
-      certTemplate.qrSize ??
       eventTemplate.qrSize ??
+      certTemplate.qrSize ??
       140
     ),
     transparentQr: Boolean(
       overrideConfig.transparentQr ??
-      certTemplate.transparentQr ??
       eventTemplate.transparentQr ??
+      certTemplate.transparentQr ??
       true
     ),
     qrPosition:
       overrideConfig.qrPosition ||
-      certTemplate.qrPosition ||
       eventTemplate.qrPosition ||
+      certTemplate.qrPosition ||
       "bottom-center",
   };
 };
