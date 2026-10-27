@@ -143,7 +143,7 @@ export default function TeamPage() {
   });
 
   return (
-    <div className="bg-[#0F1A24] min-h-screen text-gray-200 px-6 py-16">
+    <div className="bg-transparent min-h-screen text-gray-200 px-6 py-16 relative">
       {/* Intro */}
       <motion.section
         initial={{ opacity: 0, y: -20 }}
