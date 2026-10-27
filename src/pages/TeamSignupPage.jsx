@@ -72,7 +72,7 @@ export default function TeamSignupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0F1A24] text-white px-6 py-16">
+    <main className="min-h-screen bg-transparent text-white px-6 py-16 relative">
       <section className="max-w-xl mx-auto">
         <div className="mb-10 text-left">
           <p className="text-teal-400 font-mono text-sm mb-2">Team invitation</p>

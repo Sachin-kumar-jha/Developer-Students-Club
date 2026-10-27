@@ -82,6 +82,102 @@ const loadImage = (src) => {
 };
 
 /**
+ * Resolves the final template configuration with accurate priority:
+ * 1. Explicit override passed in (e.g. from Template Studio live controls)
+ * 2. Event's active certificateTemplate (authoritative layout set by admin)
+ * 3. Individual certificate's snapshot templateConfig
+ * 4. Premium DSC default fallback coordinates (name at X:50%, Y:47%)
+ */
+export const resolveTemplateConfig = (certificate = {}, overrideConfig = {}, eventTemplateOverride = null) => {
+  const eventTemplate =
+    eventTemplateOverride ||
+    certificate?.event?.certificateTemplate ||
+    certificate?.eventId?.certificateTemplate ||
+    {};
+  const certTemplate = certificate?.templateConfig || {};
+
+  return {
+    ...certTemplate,
+    ...eventTemplate,
+    ...overrideConfig,
+    imageUrl:
+      overrideConfig.imageUrl ||
+      eventTemplate.imageUrl ||
+      certTemplate.imageUrl ||
+      "",
+    nameX: Number(
+      overrideConfig.nameX ??
+      eventTemplate.nameX ??
+      certTemplate.nameX ??
+      50
+    ),
+    nameY: Number(
+      overrideConfig.nameY ??
+      eventTemplate.nameY ??
+      certTemplate.nameY ??
+      47
+    ),
+    nameFontSize: Number(
+      overrideConfig.nameFontSize ??
+      eventTemplate.nameFontSize ??
+      certTemplate.nameFontSize ??
+      54
+    ),
+    nameColor:
+      overrideConfig.nameColor ||
+      eventTemplate.nameColor ||
+      certTemplate.nameColor ||
+      "#000000",
+    nameFontWeight:
+      overrideConfig.nameFontWeight ||
+      eventTemplate.nameFontWeight ||
+      certTemplate.nameFontWeight ||
+      "bold",
+    showRollNo: Boolean(
+      overrideConfig.showRollNo ??
+      eventTemplate.showRollNo ??
+      certTemplate.showRollNo ??
+      false
+    ),
+    showBranch: Boolean(
+      overrideConfig.showBranch ??
+      eventTemplate.showBranch ??
+      certTemplate.showBranch ??
+      false
+    ),
+    qrX: Number(
+      overrideConfig.qrX ??
+      eventTemplate.qrX ??
+      certTemplate.qrX ??
+      50
+    ),
+    qrY: Number(
+      overrideConfig.qrY ??
+      eventTemplate.qrY ??
+      certTemplate.qrY ??
+      88
+    ),
+    qrSize: Number(
+      overrideConfig.qrSize ??
+      eventTemplate.qrSize ??
+      certTemplate.qrSize ??
+      140
+    ),
+    transparentQr: Boolean(
+      overrideConfig.transparentQr ??
+      eventTemplate.transparentQr ??
+      certTemplate.transparentQr ??
+      true
+    ),
+    qrPosition:
+      overrideConfig.qrPosition ||
+      eventTemplate.qrPosition ||
+      certTemplate.qrPosition ||
+      "bottom-center",
+  };
+};
+
+/**
  * Renders the complete authentic certificate onto an HTML5 canvas
  * Supports both custom background template image and default DSC luxury template.
  */
@@ -93,85 +189,19 @@ export const renderCertificateToCanvas = async (canvas, certificate, templateCon
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  const bgImageUrl =
-    templateConfig.imageUrl ||
-    certificate.templateConfig?.imageUrl ||
-    certificate.event?.certificateTemplate?.imageUrl ||
-    certificate.eventId?.certificateTemplate?.imageUrl ||
-    "";
+  const resolved = resolveTemplateConfig(certificate, templateConfig);
 
-  // Coordinates & Styling Settings (from templateConfig, certificate, or event)
-  const nameXPercent = Number(
-    templateConfig.nameX ??
-    certificate.templateConfig?.nameX ??
-    certificate.event?.certificateTemplate?.nameX ??
-    certificate.eventId?.certificateTemplate?.nameX ??
-    50
-  );
-  const nameYPercent = Number(
-    templateConfig.nameY ??
-    certificate.templateConfig?.nameY ??
-    certificate.event?.certificateTemplate?.nameY ??
-    certificate.eventId?.certificateTemplate?.nameY ??
-    41.5
-  );
-  const nameFontSize = Number(
-    templateConfig.nameFontSize ??
-    certificate.templateConfig?.nameFontSize ??
-    certificate.event?.certificateTemplate?.nameFontSize ??
-    certificate.eventId?.certificateTemplate?.nameFontSize ??
-    54
-  );
-  const nameColor =
-    templateConfig.nameColor ||
-    certificate.templateConfig?.nameColor ||
-    certificate.event?.certificateTemplate?.nameColor ||
-    certificate.eventId?.certificateTemplate?.nameColor ||
-    "#000000";
-
-  const showRollNo = Boolean(
-    templateConfig.showRollNo ??
-    certificate.templateConfig?.showRollNo ??
-    certificate.event?.certificateTemplate?.showRollNo ??
-    certificate.eventId?.certificateTemplate?.showRollNo ??
-    false
-  );
-
-  const qrXPercent = Number(
-    templateConfig.qrX ??
-    certificate.templateConfig?.qrX ??
-    certificate.event?.certificateTemplate?.qrX ??
-    certificate.eventId?.certificateTemplate?.qrX ??
-    50
-  );
-  const qrYPercent = Number(
-    templateConfig.qrY ??
-    certificate.templateConfig?.qrY ??
-    certificate.event?.certificateTemplate?.qrY ??
-    certificate.eventId?.certificateTemplate?.qrY ??
-    88
-  );
-  const qrSize = Number(
-    templateConfig.qrSize ??
-    certificate.templateConfig?.qrSize ??
-    certificate.event?.certificateTemplate?.qrSize ??
-    certificate.eventId?.certificateTemplate?.qrSize ??
-    140
-  );
-  const transparentQr = Boolean(
-    templateConfig.transparentQr ??
-    certificate.templateConfig?.transparentQr ??
-    certificate.event?.certificateTemplate?.transparentQr ??
-    certificate.eventId?.certificateTemplate?.transparentQr ??
-    true
-  );
-
-  const qrPosition =
-    templateConfig.qrPosition ||
-    certificate.templateConfig?.qrPosition ||
-    certificate.event?.certificateTemplate?.qrPosition ||
-    certificate.eventId?.certificateTemplate?.qrPosition ||
-    "bottom-center";
+  const bgImageUrl = resolved.imageUrl;
+  const nameXPercent = resolved.nameX;
+  const nameYPercent = resolved.nameY;
+  const nameFontSize = resolved.nameFontSize;
+  const nameColor = resolved.nameColor;
+  const showRollNo = resolved.showRollNo;
+  const qrXPercent = resolved.qrX;
+  const qrYPercent = resolved.qrY;
+  const qrSize = resolved.qrSize;
+  const transparentQr = resolved.transparentQr;
+  const qrPosition = resolved.qrPosition;
 
   const verificationUrl = getVerificationUrl(certificate.certificateId);
 

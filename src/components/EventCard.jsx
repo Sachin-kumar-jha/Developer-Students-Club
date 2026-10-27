@@ -180,7 +180,7 @@ export default function EventCard({ event, index, isPast, isAdmin, onRefresh }) 
 
       <motion.div
         key={event._id || event.id || index}
-        className="bg-[#0F1A24]/40 backdrop-blur-md border border-gray-800/80 rounded-3xl p-6 md:p-8 hover:border-teal-500/30 hover:shadow-[0_15px_30px_-10px_rgba(20,184,166,0.15)] transition-all duration-300 shadow-xl group mb-10"
+        className="bg-[#0A121A]/60 backdrop-blur-lg border border-teal-500/20 rounded-3xl p-6 md:p-8 card-3d-hover shadow-2xl group mb-10"
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: index * 0.15 }}

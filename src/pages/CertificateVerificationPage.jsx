@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { verifyCertificate, clearVerification } from "../redux/slices/certificateSlice.js";
 import {
   renderCertificateToCanvas,
+  resolveTemplateConfig,
   downloadCertificatePNG,
   downloadCertificatePDF,
 } from "../utils/certificateRenderer.js";
@@ -49,7 +50,7 @@ export default function CertificateVerificationPage() {
   useEffect(() => {
     if (verifiedCertificate?.valid && verifiedCertificate.certificate) {
       const cert = verifiedCertificate.certificate;
-      const template = cert.event?.certificateTemplate || cert.templateConfig || {};
+      const template = resolveTemplateConfig(cert);
 
       setIsRendering(true);
       setTimeout(async () => {
@@ -102,7 +103,7 @@ export default function CertificateVerificationPage() {
   const isRevoked = verifiedCertificate?.status === "revoked";
 
   return (
-    <div className="min-h-screen bg-[#070D14] text-white pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-transparent text-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative">
       {/* Background glow effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-teal-500/10 rounded-full blur-[140px]"></div>

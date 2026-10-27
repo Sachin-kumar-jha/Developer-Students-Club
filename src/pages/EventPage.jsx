@@ -49,7 +49,7 @@ export default function EventPage() {
   };
 
   return (
-    <div className="bg-[#0F1A24] min-h-screen text-white px-6 md:px-20 py-12">
+    <div className="bg-transparent min-h-screen text-white px-6 md:px-20 py-12 relative">
       {isAuthModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
 
       <motion.div

@@ -76,7 +76,7 @@ const videos = allMedia
   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
-    <div className="bg-[#0F1A24] min-h-screen text-white px-6 md:px-20 py-12">
+    <div className="bg-transparent min-h-screen text-white px-6 md:px-20 py-12 relative">
       {/* Header */}
       <motion.div
         className="mb-12"

@@ -2,6 +2,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
+import CyberCampusCanvas from "./components/3d/CyberCampusCanvas.jsx";
 import Hero from "./components/Hero";
 import About from "./components/About";
 import Events from "./components/Events";
@@ -63,8 +64,10 @@ export default function App() {
           scale: isPreloading ? 0.98 : 1
         }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-[#0F1A24] text-white w-full min-h-screen select-none"
+        className="bg-[#060C13]/35 text-white w-full min-h-screen select-none relative"
       >
+        <CyberCampusCanvas />
+        <div className="relative z-10">
         <Navbar />
         <div className="md:px-5">
           <Routes>
@@ -228,6 +231,7 @@ export default function App() {
           pauseOnHover
         />
         <Footer />
+        </div>
       </motion.div>
     </>
   );

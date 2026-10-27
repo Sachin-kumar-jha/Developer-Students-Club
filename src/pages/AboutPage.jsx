@@ -24,7 +24,7 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="bg-[#0F1A24] min-h-screen text-gray-200 px-6 md:px-16 lg:px-24 py-16">
+    <div className="bg-transparent min-h-screen text-gray-200 px-6 md:px-16 lg:px-24 py-16 relative">
       {/* Hero Header */}
       <motion.section
         className="py-16 max-w-4xl text-left"
@@ -68,7 +68,7 @@ export default function AboutPage() {
           ].map((item, i) => (
             <motion.div
               key={i}
-              className="p-6 bg-[#0F1A24]/40 border border-gray-800 rounded-2xl hover:border-teal-500/30 transition-all duration-300 shadow-xl flex flex-col items-start text-left group"
+              className="p-6 bg-[#0A121A]/60 backdrop-blur-md border border-teal-500/20 card-3d-hover rounded-2xl transition-all duration-300 shadow-xl flex flex-col items-start text-left group"
               variants={fadeUp}
               whileHover={{ scale: 1.03 }}
             >
@@ -100,7 +100,7 @@ export default function AboutPage() {
           ].map((item, i) => (
             <motion.div
               key={i}
-              className="p-6 bg-[#0F1A24]/40 border border-gray-800 rounded-2xl hover:border-teal-500/30 transition-all duration-300 shadow-xl flex flex-col items-start text-left group"
+              className="p-6 bg-[#0A121A]/60 backdrop-blur-md border border-teal-500/20 card-3d-hover rounded-2xl transition-all duration-300 shadow-xl flex flex-col items-start text-left group"
               variants={fadeUp}
               whileHover={{ scale: 1.03 }}
             >

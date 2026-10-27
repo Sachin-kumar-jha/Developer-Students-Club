@@ -3,6 +3,7 @@ import { Code2, Sparkles, Zap, Users, Cpu, Terminal, Rocket, Binary, GitBranch, 
 import { createElement, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import AuthModal from "./AuthModal";
+
 export default function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [codeLines, setCodeLines] = useState([]);
@@ -57,6 +58,7 @@ $`
     setTypedCode("");
     let i = 0;
     const code = fileContents[activeTab];
+    if (!code) return;
     const interval = setInterval(() => {
       if (i < code.length) {
         setTypedCode(code.slice(0, i + 1));
@@ -132,7 +134,7 @@ $`
     <>
       <motion.section
         id="home"
-        className="relative min-h-screen w-full  p-10  flex items-center justify-center overflow-hidden bg-black"
+        className="relative min-h-screen w-full p-6 md:p-10 flex items-center justify-center overflow-hidden bg-transparent backdrop-blur-[1px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -394,7 +396,7 @@ $`
             transition={{ duration: 0.8, delay: 0.4 }}
             className="lg:col-span-5 hidden lg:block w-full"
           >
-            <div className="relative w-full aspect-[4/3] bg-[#0A1118]/80 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="relative w-full min-h-[440px] aspect-[4/3] bg-[#081018]/60 backdrop-blur-xl border border-teal-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
               {/* Gradient background glows */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
