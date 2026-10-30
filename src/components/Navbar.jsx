@@ -38,6 +38,7 @@ export default function Navbar() {
     const initialScroll = window.scrollY > 100;
     setIsScrolled(initialScroll);
     setIsMobile(window.innerWidth < 768);
+
     // Disable initial load flag after a brief moment
     setTimeout(() => {
       setIsInitialLoad(false);
@@ -77,11 +78,7 @@ export default function Navbar() {
           className="mx-auto bg-[#0F1A24]/95 backdrop-blur-md shadow-lg border border-gray-700/50"
           initial={false}
           animate={{
-            maxWidth: isScrolled
-              ? isMobile
-                ? "92%"
-                : "min(100%, max(70%, 60rem))"
-              : "100%",
+            maxWidth: isScrolled ? (isMobile ? "92%" : "70%") : "100%",
             borderRadius: isScrolled ? "1rem" : "0",
             marginTop: isScrolled ? "0.5rem" : "0",
           }}
@@ -108,11 +105,12 @@ export default function Navbar() {
                 }}
                 transition={isInitialLoad ? { duration: 0 } : { duration: 0.3 }}
               />
-              <span>{isScrolled ? "DSC" : "Developer Students Club"}</span>
+              <span className="hidden sm:inline">Developer Students Club</span>
+              <span className="sm:hidden">DSC</span>
             </motion.h1>
 
             {/* Desktop Menu */}
-            <div className="hidden md:flex flex-1 justify-end items-center gap-1 xl:gap-6 text-xs lg:text-sm xl:text-base text-gray-300">
+            <div className="hidden md:flex items-center gap-8 text-gray-300">
               <Link to="/" className="hover:text-teal-400 transition">
                 Home
               </Link>
