@@ -84,13 +84,13 @@ export default function Navbar() {
           }}
           transition={isInitialLoad ? { duration: 0 } : { duration: 0.4, ease: "easeInOut" }}
         >
-          <div className="px-6 py-3 flex justify-between items-center">
+          <div className="px-3 sm:px-6 py-3 flex justify-between items-center gap-3">
             {/* Logo */}
             <motion.h1
-              className="flex items-center gap-2 text-2xl font-semibold tracking-tighter text-white"
+              className="flex items-center gap-2 whitespace-nowrap text-2xl font-semibold tracking-tighter text-white"
               initial={false}
               animate={{
-                fontSize: isScrolled ? "1.25rem" : "1.5rem",
+                fontSize: isScrolled ? "1.25rem" : "clamp(1rem, 3vw, 1.5rem)",
               }}
               transition={isInitialLoad ? { duration: 0 } : { duration: 0.3 }}
             >
@@ -137,11 +137,11 @@ export default function Navbar() {
                 Contact
               </Link>
 
-              <div className="flex gap-3 ml-4">
+              <div className="flex gap-3 ml-1 xl:ml-4">
                 {!user ? (
                   <motion.button
                     onClick={() => setShowAuthModal(true)}
-                    className="px-4 py-2 bg-teal-400 text-black cursor-pointer rounded-lg font-semibold hover:bg-teal-300 transition"
+                    className="px-2 py-1.5 lg:px-3 lg:py-2 xl:px-4 bg-teal-400 text-black cursor-pointer rounded-lg font-semibold hover:bg-teal-300 transition"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -156,7 +156,7 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             {!isOpen && (
               <motion.button
-                className="md:hidden text-teal-400 text-2xl focus:outline-none"
+                className="md:hidden shrink-0 text-teal-400 text-2xl focus:outline-none"
                 onClick={() => setIsOpen(true)}
                 whileTap={{ scale: 0.9 }}
               >
@@ -183,7 +183,7 @@ export default function Navbar() {
               transition={{ duration: 0.2 }}
             />
             <motion.div
-              className="fixed top-0 right-0 h-full w-72 bg-[#0F1A24] z-50 md:hidden flex flex-col shadow-2xl border-l border-gray-700"
+              className="fixed top-0 right-0 h-full w-[min(18rem,calc(100vw-1rem))] bg-[#0F1A24] z-50 md:hidden flex flex-col shadow-2xl border-l border-gray-700"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
